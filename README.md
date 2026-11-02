@@ -6,3 +6,5 @@ Live at https://shop.nexaflowersgroup.com (Netlify publishes this repository aut
 - `favicon.png` – site icon.
 
 Database changes (SQL) are run by hand in Supabase › SQL Editor.
+
+Last published: 2026-11-02.
