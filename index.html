@@ -873,9 +873,10 @@ function renderDelivery(){
         <div class="field"><label>Próximas entregas</label>${s.map(x=>`<div class="kv"><span>${dayLabelEs(x.date)}</span><span>cierra ${cutoffLabelEs(x.cutoff)}</span></div>`).join("")}</div>
         <p class="note" style="margin:0">El cierre da tiempo para comprar a las fincas, cortar, empacar y volar a Chicago. Si un día no hay envío (feriado), en la versión real se desactiva esa semana.</p>
       </div>
-    </form></div>`;
+    </form></div>` + cajasCardHTML();
     $("#sf").onchange=e=>{ const t=e.target; if(t.name==="day") CONFIG.day=+t.value; else if(t.id==="cd") CONFIG.cutoffDays=+t.value; else if(t.id==="ch") CONFIG.cutoffHour=+t.value; else { if(t.id==="fee") CONFIG.fee=Math.max(0,+t.value||0); if(t.id==="ffree") CONFIG.freeFrom=Math.max(0,+t.value||0); if(t.id==="fzel") CONFIG.zelle=t.value.trim(); if(t.id==="favi") CONFIG.avisos=t.value.trim(); return; } draw(); };
     $("#sf").onsubmit=e=>{ e.preventDefault(); CONFIG.fee=Math.max(0,+$("#fee").value||0); CONFIG.freeFrom=Math.max(0,+$("#ffree").value||0); CONFIG.zelle=$("#fzel").value.trim(); CONFIG.avisos=$("#favi").value.trim(); saveConfig(); void("Guardado. La tienda ahora entrega cada "+DAYS_ES[CONFIG.day]+"."); };
+    bindCajasCard();
   };
   draw();
 }
@@ -1074,7 +1075,7 @@ function dispoFor(id,len){
 }
 function dispoLabel(id,len){
   const L=dispoFor(id,len); if(!L.length) return `<span class="nodispo">Sin disponible</span>`;
-  return L.slice(0,3).map(r=>`<span>${esc(FARMS[r.finca])}: ${r.cajas??""} ${esc(r.caja||"")}${r.uxc?" x "+r.uxc+(r.unidad==="bunches"?"bu":""):""}${r.costo!=null?" · "+fmt(r.costo):""}</span>`).join("<br>");
+  return L.slice(0,3).map(r=>`<span>${esc(FARMS[r.finca])}: ${r.cajas??""} ${esc(r.caja||"")}${bunchesDe(r)?" ≈ "+bunchesDe(r)+" bu":""}${r.uxc?" x "+r.uxc+(r.unidad==="bunches"?"bu":""):""}${r.costo!=null?" · "+fmt(r.costo):""}</span>`).join("<br>");
 }
 let DRAFT=null;      // disponible leído, esperando revisión
 async function sampleFn(){ try{ return window.claude ? await claude.use("sample") : null; }catch(e){ return null; } }
@@ -1158,7 +1159,7 @@ function renderDraft(){
     <td><input list="dlVars" data-i="${i}" data-f="var" value="${esc(r.id&&BYID[r.id]?BYID[r.id].n:"")}" placeholder="${esc(r.nombre||"")} — no está en el catálogo" aria-label="Variedad"></td>
     <td class="r"><input type="number" data-i="${i}" data-f="largo" value="${r.largo??""}" style="width:64px"></td>
     <td class="r"><input type="number" data-i="${i}" data-f="cajas" value="${r.cajas??""}" style="width:56px"></td>
-    <td>${esc(r.caja||"")}${r.uxc?" x "+r.uxc+(r.unidad==="bunches"?"bu":""):""}${r.tb?` · ${r.tb} tallos/bunch`:""}</td>
+    <td>${esc(r.caja||"")}${r.uxc?" x "+r.uxc+(r.unidad==="bunches"?"bu":""):""}${r.tb?` · ${r.tb} tallos/bunch`:""}${bunchesDe(r)?` · ≈ ${bunchesDe(r)} bunches`:""}</td>
     <td class="r"><input type="number" step="0.01" data-i="${i}" data-f="costo" value="${r.costo??""}" style="width:70px"></td></tr>`).join("")}
   </tbody></table></div>
   <div class="dispo-actions"><button class="btn" type="button" id="dOk">Confirmar y guardar</button><button class="line-btn" type="button" id="dCancel">Descartar</button></div>`;
@@ -1450,6 +1451,48 @@ function parseDispoText(txt){
   return tab && tab>=L.length*0.5 ? parseTabla(txt) : parseDispoTextProto(txt);
 }
 
+/* ---------- Bunches por caja (HB / QB / EB). Se edita en Panel › Entregas y se guarda en config_envios.bunches_por_caja ---------- */
+const CAJAS_DEF = {rosas:{c:{HB:12,QB:8,EB:6}, l:{HB:10,QB:7,EB:5}}, fillers:{HB:16,QB:8,EB:4}, verdes:{HB:28,QB:14,EB:7}};
+let CAJAS = JSON.parse(JSON.stringify(CAJAS_DEF));
+function grupoCaja(t){ return t<=3 ? "rosas" : t===6 ? "verdes" : "fillers"; }     // flores de verano y exóticas van como fillers
+function bunchesPorCaja(t, largo, caja){
+  const g=grupoCaja(t), k=(caja||"").toUpperCase(); if(k==="FB") return null;
+  const tabla = g==="rosas" ? ((largo||0)>=70 ? CAJAS.rosas.l : CAJAS.rosas.c) : CAJAS[g];
+  return tabla && tabla[k] || null;
+}
+// Primero lo que dice la finca para ese producto (p. ej. Bellaflor: "Pack 30 · HB"); si no, la tabla general.
+function bunchesDe(r, finca){
+  const it=BYID[r.id]; if(!it||r.cajas==null) return null;
+  const f = finca ?? r.finca ?? (typeof DRAFT!=="undefined" && DRAFT ? DRAFT.finca : null);
+  const caja=(r.caja||"").toUpperCase();
+  const of=(OFFER_LIVE[r.id]||[]).filter(o=>o.finca_id==f && o.bunches_por_caja && (!r.largo||!o.largo_cm||o.largo_cm===r.largo));
+  const o=of.find(o=>(o.tipo_caja||"").toUpperCase()===caja) || of[0];
+  if(o){ const k=(o.tipo_caja||"").toUpperCase();
+    if(k===caja) return r.cajas*o.bunches_por_caja;
+    const a=bunchesPorCaja(it.t,r.largo,k), b=bunchesPorCaja(it.t,r.largo,caja);
+    if(a&&b) return Math.round(r.cajas*o.bunches_por_caja*b/a); }
+  const n=bunchesPorCaja(it.t,r.largo,caja); return n? r.cajas*n : null;
+}
+function cajasCardHTML(){
+  const inp=(path,v)=>`<input type="number" min="0" step="1" data-cj="${path}" value="${v}" style="width:64px">`;
+  const fila=(lbl,base,o)=>`<tr><td>${lbl}</td><td class="r">${inp(base+".HB",o.HB)}</td><td class="r">${inp(base+".QB",o.QB)}</td><td class="r">${inp(base+".EB",o.EB)}</td></tr>`;
+  return `<div class="wrap view" style="padding-top:0"><div class="sec-h"><h2 class="disp">Bunches por caja</h2><span style="font-size:.82rem;color:var(--muted)">Para calcular cuántos bunches trae cada disponible</span></div>
+    <div class="tw"><table class="adm" style="max-width:620px"><thead><tr><th>Tipo</th><th class="r">HB</th><th class="r">QB</th><th class="r">EB</th></tr></thead><tbody>
+      ${fila("Rosas, garden y spray · 40 a 60 cm","rosas.c",CAJAS.rosas.c)}${fila("Rosas, garden y spray · 70 cm o más","rosas.l",CAJAS.rosas.l)}
+      ${fila("Fillers, flores de verano y exóticas","fillers",CAJAS.fillers)}${fila("Verdes","verdes",CAJAS.verdes)}
+    </tbody></table></div>
+    <button class="gold-btn" type="button" id="cjSave" style="margin-top:14px">Guardar bunches por caja ↗</button>
+    <p class="note" style="margin-top:14px">Rosas: HB 12 · QB 8 · EB 6 en 40–60 cm y HB 10 desde 70 cm (botón más grande). QB y EB de 70 cm o más, fillers y verdes son estimados: corrígelos si tu finca empaca distinto.</p></div>`;
+}
+function bindCajasCard(){
+  const b=$("#cjSave"); if(!b) return;
+  b.onclick=async()=>{
+    document.querySelectorAll("[data-cj]").forEach(i=>{ const [g,s,k]=i.dataset.cj.split("."); const v=Math.max(0,parseInt(i.value)||0); if(k) CAJAS[g][s][k]=v; else CAJAS[g][s]=v; });
+    const {error}=await sb.from("config_envios").update({bunches_por_caja:CAJAS}).eq("id",1);
+    toast(error? (/bunches_por_caja/.test(error.message)?"Falta correr 11_bunches_por_caja.sql en Supabase":"No se pudo guardar: "+error.message) : "Bunches por caja guardados ✓");
+  };
+}
+
 /* =================== NEXA E-SHOP · capa en vivo (Supabase + Stripe) =================== */
 const sb = supabase.createClient(SB_URL, SB_KEY, {auth:{persistSession:true, autoRefreshToken:true, detectSessionInUrl:true, flowType:"implicit"}});
 const ST_FROM_DB = {pendiente_pago:"awaiting", pagado:"paid", en_compra:"sourcing", asignado:"sourcing", enviado:"shipped", entregado:"delivered", cancelado:"cancelled"};
@@ -1553,7 +1596,7 @@ async function loadAdmin(){
   const lim=new Date(); lim.setDate(lim.getDate()-7);
   const [f, of, dp, cl, ls] = await Promise.all([
     sb.from("fincas").select("id,nombre").order("id"),
-    all(()=>sb.from("oferta_finca").select("finca_id,variedad_id,largo_cm,color,presentacion,costo_usd,tallos_por_bunch").eq("activo",true).order("id")),
+    all(()=>sb.from("oferta_finca").select("*").eq("activo",true).order("id")),
     all(()=>sb.from("disponibilidad_finca").select("*").order("id")),
     all(()=>sb.from("clientes").select("*").order("creado",{ascending:false})),
     sb.from("listas_precio").select("id,nombre").order("id")
@@ -1565,8 +1608,9 @@ async function loadAdmin(){
   state.clients = cl.map(c=>({id:c.id, biz:c.negocio||c.email, type:c.tipo_negocio||"", email:c.email||"", status:CL_FROM_DB[c.estado]||"pending", estado:c.estado,
     list:(LISTAS.find(l=>l.id===c.lista_precio_id)||{}).nombre||"General", lista_id:c.lista_precio_id, wire:!!c.permite_transferencia,
     contact:c.nombre_contacto||"", phone:c.telefono||"", addr:c.direccion_entrega||"", resale:c.resale_certificate||"", creado:c.creado}));
-  const {data:cf} = await sb.from("config_envios").select("correo_avisos").eq("id",1).maybeSingle();
+  const {data:cf} = await sb.from("config_envios").select("*").eq("id",1).maybeSingle();
   CONFIG.avisos = cf&&cf.correo_avisos || "";
+  if(cf && cf.bunches_por_caja) try{ const b=cf.bunches_por_caja; CAJAS={rosas:{c:{...CAJAS_DEF.rosas.c,...(b.rosas&&b.rosas.c)}, l:{...CAJAS_DEF.rosas.l,...(b.rosas&&b.rosas.l)}}, fillers:{...CAJAS_DEF.fillers,...b.fillers}, verdes:{...CAJAS_DEF.verdes,...b.verdes}}; }catch(e){}
 }
 function groupDispo(dp){
   const by={};
