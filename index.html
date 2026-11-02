@@ -1,8 +1,16 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Nexa E-Shop · Wholesale flowers Chicago</title>
 <meta name="nexa-version" content="2026-11-02">
 <meta name="description" content="Wholesale fresh flowers for Chicago florists. Weekly delivery from partner farms in Ecuador and Colombia.">
 <meta name="robots" content="noindex">
 <link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#123524">
+<meta name="apple-mobile-web-app-title" content="Nexa">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1361,6 +1369,10 @@ function abrirPropuesta(d){
 function renderDispo(){
   renderDispoProto();
   const rd=$("#dRead"); if(rd) rd.onclick=leerVarias;   // varias fincas a la vez + finca reconocida sola
+  if(rd && !$("#dPaste")){ const pb=document.createElement("button"); pb.className="btn"; pb.type="button"; pb.id="dPaste"; pb.textContent="📋 Pegar lo copiado";
+    pb.onclick=async()=>{ try{ const t=await navigator.clipboard.readText(); if(!t.trim()){ toast("No hay nada copiado"); return; } $("#dTxt").value=t; leerVarias(); }
+      catch(e){ $("#dTxt").focus(); toast("Mantén presionado el cuadro de texto y elige Pegar"); } };
+    rd.before(pb, " "); }
   const hist=[...(state.dispo||[])].sort((a,b)=>b.fecha.localeCompare(a.fecha));
   document.querySelectorAll("[data-ver]").forEach(bt=>{ const d=hist[+bt.dataset.ver]; if(!d) return;
     const p=document.createElement("button"); p.className="btn-sm"; p.type="button"; p.textContent="Actualizar precios"; p.onclick=()=>abrirPropuesta(d); bt.before(p, " "); });
