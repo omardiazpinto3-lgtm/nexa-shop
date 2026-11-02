@@ -286,7 +286,7 @@ table.adm select{border:1px solid var(--line);background:var(--surface);color:#1
 .btn-sm{background:transparent;border:1px solid var(--line);padding:.4em .7em;cursor:pointer;font-size:.78rem}
 .btn-sm.ok{border-color:var(--ok);color:var(--ok)}.btn-sm.no{color:var(--wine);border-color:var(--wine)}
 .admin-link{font-size:.8rem}
-.res-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px}.res-card{display:flex;flex-direction:column;border:1px solid var(--line);background:var(--surface);text-decoration:none;color:inherit}.res-card:hover{border-color:var(--gold)}.res-ph{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:#fff;aspect-ratio:1/1}.res-ph img{width:100%;height:100%;object-fit:contain;background:#fff}.res-tx{padding:14px 16px 16px;display:flex;flex-direction:column;gap:4px}.res-tx h3{margin:0;font-size:1.5rem}.res-tx span{font-size:.9rem}.res-tx small{color:var(--muted);font-size:.78rem}.res-feat{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.res-feat figure{margin:0;position:relative;background:#fff;border:1px solid var(--line);aspect-ratio:1/1;overflow:hidden}.res-feat figure.big{grid-column:span 2;grid-row:span 2}.res-feat img{width:100%;height:100%;object-fit:contain;background:#fff}.res-feat figcaption{position:absolute;left:0;right:0;bottom:0;padding:10px 12px;background:linear-gradient(transparent,rgba(16,42,32,.78));color:#fff;display:flex;flex-direction:column;gap:2px}.res-feat figcaption b{font-family:var(--display);font-weight:400;font-size:1.05rem}.res-feat figure.big figcaption b{font-size:1.6rem}.res-feat figcaption span{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;opacity:.9}.res-feat figcaption em{font-style:normal;font-size:.7rem;color:#E8C77A}@media(max-width:700px){.res-feat{grid-template-columns:1fr 1fr}}.res-cta{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;margin-top:40px;padding:26px;background:var(--band);color:var(--band-fg)}.res-cta p{color:inherit;opacity:.85}
+.res-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px}.res-card{display:flex;flex-direction:column;border:1px solid var(--line);background:var(--surface);text-decoration:none;color:inherit}.res-card:hover{border-color:var(--gold)}.res-ph{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:#fff;aspect-ratio:1/1}.res-ph img{width:100%;height:100%;object-fit:contain;background:#fff}.res-tx{padding:14px 16px 16px;display:flex;flex-direction:column;gap:4px}.res-tx h3{margin:0;font-size:1.5rem}.res-tx span{font-size:.9rem}.res-tx small{color:var(--muted);font-size:.78rem}.dispo-actions .btn,.dispo-actions .line-btn{min-height:44px}@media(max-width:700px){.dreview thead{display:none}.dreview tbody tr{display:grid;grid-template-columns:repeat(4,1fr);gap:6px 8px;padding:10px 4px;border-bottom:1px solid var(--line)}.dreview td{border:0!important;padding:0!important;text-align:left!important}.dreview td:nth-child(1){grid-column:1;grid-row:1}.dreview td.orig{grid-column:2/5;grid-row:1;font-size:.8rem}.dreview td:nth-child(3){grid-column:1/5}.dreview td input[data-f=var]{width:100%}.dreview td input[type=number]{width:100%!important}.dreview td:nth-child(6){font-size:.72rem;align-self:center}.dreview td:nth-child(4)::before{content:"Largo"}.dreview td:nth-child(5)::before{content:"Cajas"}.dreview td:nth-child(7)::before{content:"Costo/tallo"}.dreview td:nth-child(4)::before,.dreview td:nth-child(5)::before,.dreview td:nth-child(7)::before{display:block;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}#dTxt{font-size:16px}}.res-feat{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.res-feat figure{margin:0;position:relative;background:#fff;border:1px solid var(--line);aspect-ratio:1/1;overflow:hidden}.res-feat figure.big{grid-column:span 2;grid-row:span 2}.res-feat img{width:100%;height:100%;object-fit:contain;background:#fff}.res-feat figcaption{position:absolute;left:0;right:0;bottom:0;padding:10px 12px;background:linear-gradient(transparent,rgba(16,42,32,.78));color:#fff;display:flex;flex-direction:column;gap:2px}.res-feat figcaption b{font-family:var(--display);font-weight:400;font-size:1.05rem}.res-feat figure.big figcaption b{font-size:1.6rem}.res-feat figcaption span{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;opacity:.9}.res-feat figcaption em{font-style:normal;font-size:.7rem;color:#E8C77A}@media(max-width:700px){.res-feat{grid-template-columns:1fr 1fr}}.res-cta{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;margin-top:40px;padding:26px;background:var(--band);color:var(--band-fg)}.res-cta p{color:inherit;opacity:.85}
 </style>
 
 <header class="top">
@@ -1150,7 +1150,7 @@ function renderDispoProto(){
     ${d.rows.map(r=>`<tr><td>${esc(BYID[r.id]?BYID[r.id].n:r.nombre)}</td><td>${r.largo?r.largo+" cm":esc(r.pres||"—")}</td><td class="r">${r.cajas??""}</td><td>${esc(r.caja||"")}${r.uxc?" x "+r.uxc+" "+esc(r.unidad||""):""}</td><td class="r">${r.costo!=null?fmt(r.costo):"—"}</td><td>${esc(r.nota||"")}</td></tr>`).join("")}</tbody></table></div>`;
     $("#dVer").scrollIntoView({behavior:"smooth"}); });
 }
-function renderDraft(){
+function renderDraftProto(){
   const D=DRAFT, ok=D.rows.filter(r=>r.id&&!r.ignorar).length, bad=D.rows.filter(r=>!r.id&&!r.ignorar).length;
   $("#dReview").innerHTML=`<div class="sec-h"><h2 class="disp">Revisar · ${esc(FARMS[D.finca])} · ${esc(D.fecha)}</h2><span style="font-size:.82rem;color:var(--muted)"><b>${ok}</b> reconocidas${bad?` · <b style="color:var(--wine)">${bad}</b> en amarillo para corregir`:""}. Escribe la variedad correcta o marca “Ignorar”.</span></div>
   <div class="tw"><table class="adm dreview"><thead><tr><th>Ignorar</th><th>Línea original</th><th>Variedad en el catálogo</th><th class="r">Largo</th><th class="r">Cajas</th><th>Caja</th><th class="r">Costo/tallo</th></tr></thead><tbody>
@@ -1170,7 +1170,7 @@ function renderDraft(){
     else { const v=parseFloat(el.value); r[f]=isFinite(v)?v:null; }
     renderDraft();
   });
-  $("#dCancel").onclick=()=>{ DRAFT=null; $("#dReview").innerHTML=""; };
+  $("#dCancel").onclick=()=>{ DRAFT=null; $("#dReview").innerHTML=""; if(typeof siguienteDeCola==="function") siguienteDeCola(); };
   $("#dOk").onclick=()=>saveDispo(D);
 }
 let _xlsx; function loadXLSX(){ return _xlsx ||= new Promise((res,rej)=>{ const s=document.createElement("script"); s.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"; s.onload=res; s.onerror=rej; document.head.appendChild(s); }); }
@@ -1360,6 +1360,7 @@ function abrirPropuesta(d){
 }
 function renderDispo(){
   renderDispoProto();
+  const rd=$("#dRead"); if(rd) rd.onclick=leerVarias;   // varias fincas a la vez + finca reconocida sola
   const hist=[...(state.dispo||[])].sort((a,b)=>b.fecha.localeCompare(a.fecha));
   document.querySelectorAll("[data-ver]").forEach(bt=>{ const d=hist[+bt.dataset.ver]; if(!d) return;
     const p=document.createElement("button"); p.className="btn-sm"; p.type="button"; p.textContent="Actualizar precios"; p.onclick=()=>abrirPropuesta(d); bt.before(p, " "); });
@@ -1463,6 +1464,7 @@ function bunchesPorCaja(t, largo, caja){
 // Primero lo que dice la finca para ese producto (p. ej. Bellaflor: "Pack 30 · HB"); si no, la tabla general.
 function bunchesDe(r, finca){
   const it=BYID[r.id]; if(!it||r.cajas==null) return null;
+  if(r.uxc){ if(r.unidad==="bunches") return r.cajas*r.uxc; if(r.tb) return Math.round(r.cajas*r.uxc/r.tb); return null; }   // la finca dijo cuánto trae la caja
   const f = finca ?? r.finca ?? (typeof DRAFT!=="undefined" && DRAFT ? DRAFT.finca : null);
   const caja=(r.caja||"").toUpperCase();
   const of=(OFFER_LIVE[r.id]||[]).filter(o=>o.finca_id==f && o.bunches_por_caja && (!r.largo||!o.largo_cm||o.largo_cm===r.largo));
@@ -1492,6 +1494,55 @@ function bindCajasCard(){
     toast(error? (/bunches_por_caja/.test(error.message)?"Falta correr 11_bunches_por_caja.sql en Supabase":"No se pudo guardar: "+error.message) : "Bunches por caja guardados ✓");
   };
 }
+
+/* ---------- Pegar disponibles de varias fincas a la vez y reconocer la finca sola ---------- */
+const FINCA_KEYS = [[/naranjo/i,"Naranjo"],[/mystic/i,"Mystic"],[/bell?a\s*flor|bellarose|bellaflor/i,"Bellaflor"],[/solandino|proteas/i,"Proteas Solandino"],
+  [/agrocoex/i,"Agrocoex"],[/colossus/i,"Colossus"],[/dyans|daisy/i,"Dyans"],[/hacienda|fdlh/i,"Hacienda"]];
+function fincaPorNombre(txt){
+  for(const [rx,n] of FINCA_KEYS) if(rx.test(txt)){ const id=Object.keys(FARMS).find(k=>FARMS[k].toLowerCase().includes(n.toLowerCase())); if(id) return +id; }
+  return null;
+}
+const esLineaProducto = l => TAB_RX.test(l) || /^\d+\s*(hb|qb|eb|fb)\b/i.test(l);
+// Separa el texto en bloques por finca (una línea con el nombre de la finca abre un bloque nuevo)
+function bloquesPorFinca(txt, porDefecto){
+  const out=[]; let cur=null;
+  txt.split(/\r?\n/).forEach(l=>{
+    const f = !esLineaProducto(l.trim()) && l.trim().length<80 ? fincaPorNombre(l) : null;
+    if(f && (!cur || cur.finca!==f || cur.lineas.some(x=>esLineaProducto(x.trim())))){ cur={finca:f,lineas:[l]}; out.push(cur); return; }
+    if(!cur){ cur={finca:null,lineas:[]}; out.push(cur); }
+    cur.lineas.push(l);
+  });
+  return out.map(b=>{ const t=b.lineas.join("\n");
+    let f=b.finca;
+    if(!f){ const L=b.lineas.filter(x=>x.trim()); if(L.length && L.filter(x=>TAB_RX.test(x.trim())).length>=L.length*0.5) f=fincaPorNombre("hacienda"); }   // formato tabla = Flores de la Hacienda
+    return {finca:f||+porDefecto, auto:!!f, texto:t};
+  }).filter(b=>b.texto.split(/\r?\n/).some(x=>esLineaProducto(x.trim())||x.trim().length>3));
+}
+let COLA=[];
+function cargarBloque(b, fecha){
+  DRAFT={finca:String(b.finca), fecha, rows:parseDispoText(b.texto), auto:b.auto};
+  const sel=$("#dFinca"); if(sel) sel.value=String(b.finca);
+  renderDraft();
+}
+function avisoCola(){
+  const h=$("#dReview .sec-h"); if(!h || !DRAFT) return;
+  h.insertAdjacentHTML("beforeend",`<div style="width:100%;font-size:.82rem;color:var(--muted);margin-top:4px">${DRAFT.auto?"Finca reconocida sola. ":""}${COLA.length?`Después siguen <b>${COLA.length}</b> más: ${COLA.map(b=>esc(FARMS[b.finca]||"")).join(", ")}.`:""} ¿No es esta finca? Cámbiala arriba en "Finca" y dale a Leer otra vez.</div>`);
+}
+function leerVarias(){
+  const txt=$("#dTxt").value.trim(); if(!txt){ $("#dMsg").textContent="Pega primero el texto."; return; }
+  const fecha=$("#dFecha").value||iso(new Date());
+  const bl=bloquesPorFinca(txt, $("#dFinca").value);
+  if(!bl.length){ $("#dMsg").textContent="No encontré líneas de producto."; return; }
+  COLA=bl.slice(1); $("#dMsg").textContent = bl.length>1 ? `Encontré ${bl.length} fincas en el texto. Revisa una por una.` : "";
+  cargarBloque(bl[0], fecha);
+  $("#dReview").scrollIntoView({behavior:"smooth"});
+}
+function siguienteDeCola(){
+  if(!COLA.length) return;
+  const b=COLA.shift(); setTimeout(()=>{ const fecha=$("#dFecha")?$("#dFecha").value:iso(new Date()); cargarBloque(b, fecha); toast("Siguiente: "+(FARMS[b.finca]||"")); }, 50);
+}
+
+function renderDraft(){ renderDraftProto(); avisoCola(); }
 
 /* =================== NEXA E-SHOP · capa en vivo (Supabase + Stripe) =================== */
 const sb = supabase.createClient(SB_URL, SB_KEY, {auth:{persistSession:true, autoRefreshToken:true, detectSessionInUrl:true, flowType:"implicit"}});
@@ -1634,7 +1685,9 @@ async function saveDispo(D){
   state.dispo=(state.dispo||[]).filter(d=>!(d.finca==D.finca&&d.fecha===D.fecha));
   state.dispo.push({finca:+D.finca, fecha:D.fecha, rows:ok.map(({ignorar,...r})=>r), sin:sin.length});
   DRAFT=null; toast(`Disponible de ${FARMS[D.finca]} guardado · ${ok.length} líneas`); renderDispo();
-  const sv=state.dispo[state.dispo.length-1]; if(sv.rows.some(r=>r.costo!=null)) abrirPropuesta(sv);
+  const sv=state.dispo[state.dispo.length-1];
+  siguienteDeCola();
+  if(sv.rows.some(r=>r.costo!=null)) abrirPropuesta(sv);
   sb.from("shop_confirmado").select("*").then(({data})=>{ if(data){ CONFIRMED={}; data.forEach(r=>(CONFIRMED[r.variedad_id] ||= []).push(r.largo_cm||null)); } });
 }
 async function deleteDispo(d){
