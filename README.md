@@ -7,4 +7,4 @@ Live at https://shop.nexaflowersgroup.com (Netlify publishes this repository aut
 
 Database changes (SQL) are run by hand in Supabase › SQL Editor.
 
-Last published: 2026-11-02 (2).
+Last published: 2026-11-02 (3).
