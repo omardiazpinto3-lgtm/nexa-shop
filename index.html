@@ -1296,15 +1296,18 @@ if(typeof module!=="undefined") module.exports={PR,precioVenta,tallosDefault};
 // Costo base de cada variedad/largo: lo más barato entre las fincas que mandaron disponible con cajas en los últimos 7 días;
 // si ninguna tiene cajas, lo más barato entre listas de precio recientes y el costo cargado (oferta_finca).
 function costoBase(id, l, pres){
-  const fr = freshDispo().flatMap(d=>d.rows.map(r=>({...r,finca:d.finca}))).filter(r=>r.id===id && r.costo!=null && (r.pres||"")===(pres||"") && ((r.largo||null)===(l||null)));
+  const fr = freshDispo().filter(d=>!precioFijo(d.finca)).flatMap(d=>d.rows.map(r=>({...r,finca:d.finca}))).filter(r=>r.id===id && r.costo!=null && (r.pres||"")===(pres||"") && ((r.largo||null)===(l||null)));
   const conCajas = fr.filter(r=>r.cajas!=null);
   const pool = conCajas.length ? conCajas : fr.concat((OFFER_LIVE[id]||[]).filter(o=>o.costo_usd!=null && (o.largo_cm||null)===(l||null) && ((o.presentacion||"").startsWith("Bunch ")?o.presentacion:"")===(pres||"")).map(o=>({costo:+o.costo_usd,finca:o.finca_id,lista:true})));
   if(!pool.length) return null;
   const b = pool.reduce((a,x)=>x.costo<a.costo?x:a);
   return {costo:+b.costo, finca:b.finca, cajas:b.cajas!=null};
 }
+const FINCAS_PRECIO_FIJO = ["Bellaflor","Proteas"];   // trabajan con su lista de precios; su disponible solo dice qué hay
+const precioFijo = fid => FINCAS_PRECIO_FIJO.some(n=>(FARMS[fid]||"").toLowerCase().includes(n.toLowerCase()));
 function proponerPrecios(d){
   const props=[], porVar={};
+  if(precioFijo(d.finca)) return props;
   const seen=new Set();
   d.rows.forEach(r=>{
     if(r.costo==null || !r.id) return;
@@ -1348,6 +1351,7 @@ function abrirPropuesta(d){
         <td class="r"><b>${fmt(x.u)}</b>${x.ex?` <span class="${d0>0?"up":"down"}">${d0>0?"▲":"▼"} ${fmt(Math.abs(d0))}</span>`:' <span class="up">nuevo</span>'}${x.manual?" <small>(manual)</small>":""}${x.escalonado?" <small>(escalonado)</small>":""}</td></tr>`; }).join("")}
       </tbody></table></div>
       <div class="dispo-actions"><button class="btn" type="button" id="ppOk">Aplicar precios marcados</button><button class="line-btn" type="button" id="ppNo">Ahora no</button><span id="ppMsg" class="dmsg" role="status"></span></div>`
+      : precioFijo(d.finca) ? `<p class="empty">${esc(FARMS[d.finca]||"")} trabaja con su lista de precios fija: su disponible solo marca qué hay esta semana y no cambia precios.</p>`
       : `<p class="empty">Con este disponible no cambia ningún precio: los costos dan los mismos precios de venta que ya tienes${d.rows.some(r=>r.costo!=null)?"":" (este disponible no trae costos)"}.</p>`}
     </div></div></div>`;
   const close=()=>closeLayer();
@@ -1443,6 +1447,67 @@ function renderResumenTipo(tid){
   $("#resBack").onclick=()=>renderResumen(); window.scrollTo(0,0);
 }
 
+/* ---------- Formato libre en una línea: "1 QB SPRAY BRILLANT STAR YELLOW 10st 80CM 10 $0,64" ----------
+   Cajas + tipo de caja al inicio; el resto en cualquier orden: tallos por bunch (10st), largo (80cm), bunches por caja (10 o x10bu), precio por tallo ($0,64). */
+const INL_START = /^(\d+)\s*(HB|QB|EB|FB)\b\s*/i;
+const INL_TIPO = [[/^GARDEN\s+ROSES?\s+/i,[2,1]],[/^(SPRAY\s+ROSES?|SPRAY)\s+/i,[3]],[/^(ROSES?|ROSAS?)\s+/i,[1,2]]];
+function buscarVariedad(nombre, tipos){
+  const w=nombre.split(/\s+/).filter(Boolean), C=[nombre], C2=[];
+  for(let n=w.length-1;n>=1;n--) C.push(w.slice(0,n).join(" "));      // sin el color o la palabra final
+  for(let n=1;n<w.length;n++) C2.push(w.slice(n).join(" "));           // sin una palabra inicial ("Senecio Dusty miller")
+  const pool=ITEMS.filter(i=>!tipos||tipos.includes(i.t));
+  const sinY = x=>NK(x).replace(/and/g,"");                             // "high magic" = "High & Magic"
+  { const k=sinY(nombre); const it=pool.find(i=>sinY(i.n)===k) || ITEMS.find(i=>sinY(i.n)===k); if(it) return it.id; }
+  for(const c of C){ const x=findVar(c,tipos)||findVar(c); if(x) return x; }
+  for(const c of C2){ const x=findVar(c,tipos)||findVar(c); if(x) return x; }
+  for(const c of C){ const k=NK(c); if(k.length<(tipos?4:5)) continue; let best=null, bl=0;   // empieza igual ("snow" -> Snowflake)
+    pool.forEach(i=>{ const n=NK(i.n); if(n.length>=5 && (k.startsWith(n)||n.startsWith(k)) && n.length>bl){ best=i.id; bl=n.length; } }); if(best) return best; }
+  for(const c of C){ const k=NK(c); if(k.length<6) continue; let best=null, bd=9;   // errores de tipeo ("candelight", "kales crane")
+    pool.forEach(i=>{ const n=NK(i.n); if(Math.abs(n.length-k.length)>2 || n.length<6) return; const d=osa(n,k); if(d<bd){ bd=d; best=i.id; } });
+    if(bd<=(k.length>=9?2:1)) return best; }
+  return null;
+}
+function osa(a,b){ const d=[]; for(let i=0;i<=a.length;i++){ d[i]=[i]; } for(let j=0;j<=b.length;j++) d[0][j]=j;
+  for(let i=1;i<=a.length;i++) for(let j=1;j<=b.length;j++){ const c=a[i-1]===b[j-1]?0:1; d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+c);
+    if(i>1&&j>1&&a[i-1]===b[j-2]&&a[i-2]===b[j-1]) d[i][j]=Math.min(d[i][j],d[i-2][j-2]+1); }
+  return d[a.length][b.length]; }
+function parseLinea(t){
+  const m=t.match(INL_START); if(!m) return null;
+  let s=t.slice(m[0].length).trim(), tipos=null, pre=null;
+  const mq=s.match(/^(\d{1,4})\s+(?=[A-Za-z])/); if(mq){ pre=+mq[1]; s=s.slice(mq[0].length); }   // "5 qb 100 Bells…": lo que trae la caja
+  for(const [rx,ts] of INL_TIPO){ if(rx.test(s)){ s=s.replace(rx,""); tipos=ts; break; } }
+  if(pre!=null) s+=` x${pre}${pre>40?"st":"bu"}`;
+  // rango de largos "40-50 cm" -> una línea por largo, mismo precio
+  const mr=s.match(/\b(\d{2,3})\s*-\s*(\d{2,3})\s*cm\b/i);
+  if(mr){ const a=+mr[1], b=+mr[2], Ls=[]; for(let l=a;l<=b;l+=10) Ls.push(l); if(!Ls.includes(b)) Ls.push(b);
+    return Ls.map(l=>parseUna(t,m,s.replace(mr[0],` ${l}cm `),tipos)).filter(Boolean); }
+  // varios largos con su precio: "50/60 0,32/0,35" -> dos líneas
+  const ml=s.match(/\b(\d{2,3})\s*\/\s*(\d{2,3})(?:\s*\/\s*(\d{2,3}))?\s*(?:cm)?\b/i), mp=s.match(/\$?\s*(\d+[.,]\d+)\s*\/\s*\$?\s*(\d+[.,]\d+)(?:\s*\/\s*\$?\s*(\d+[.,]\d+))?/);
+  if(ml){ const Ls=[ml[1],ml[2],ml[3]].filter(Boolean), Ps=mp?[mp[1],mp[2],mp[3]].filter(Boolean):[];
+    const base=s.replace(ml[0]," ").replace(mp?mp[0]:"\u0000"," ");
+    return Ls.map((l,i)=>parseUna(t,m,`${base} ${l}cm ${Ps[i]?"$"+Ps[i]:""}`,tipos)).filter(Boolean); }
+  const r=parseUna(t,m,s,tipos); return r?[r]:null;
+}
+function parseUna(t,m,s,tipos){
+  let tb=null, largo=null, uxc=null, costo=null, unidad="";
+  s=s.replace(/\$\s*(\d+(?:[.,]\d+)?)/g,(_,v)=>{ if(costo==null) costo=+v.replace(",","."); return " "; });
+  s=s.replace(/\b(\d{1,3})\s*(st|stems?|tallos?|tl)\b/gi,(_,v)=>{ tb=+v; return " "; });
+  s=s.replace(/\b(\d{2,3})\s*cm\b/gi,(_,v)=>{ largo=+v; return " "; });
+  s=s.replace(/\bx(\d{1,4})st\b/gi,(_,v)=>{ uxc=+v; unidad="tallos"; return " "; });
+  s=s.replace(/\bx\s*(\d{1,4})\s*(bu|bunch(?:es)?|bun)?\b/gi,(_,v)=>{ uxc=+v; unidad="bunches"; return " "; });
+  if(costo==null) s=s.replace(/\b(\d+[.,]\d{1,3})\b/,(_,v)=>{ costo=+v.replace(",","."); return " "; });
+  s=s.replace(/\b(\d{1,3})\b/g,(_,v)=>{ v=+v;
+    if(largo==null && v>=30 && v<=150 && v%10===0) largo=v;           // número suelto tipo 50, 60, 70 = largo
+    else if(uxc==null){ uxc=v; unidad= v>40 ? "tallos" : "bunches"; }  // el siguiente = lo que trae la caja (más de 40 = tallos)
+    return " "; });
+  const nombre=s.replace(/[*_]/g," ").replace(/\s+/g," ").trim().replace(/\s*\+\s*$/,"");
+  if(!nombre) return null;
+  return {texto:t,id:buscarVariedad(nombre,tipos),nombre,largo,pres:"",cajas:+m[1],caja:m[2].toUpperCase(),uxc,unidad:uxc?unidad:"",tb,costo,nota:"",ignorar:false};
+}
+function parseInline(txt){
+  return txt.split(/\r?\n/).map(l=>l.trim()).filter(Boolean).flatMap(t=>parseLinea(t) || [{texto:t,id:null,nombre:t,largo:null,pres:"",cajas:null,caja:"",uxc:null,unidad:"",costo:null,nota:"",ignorar:true}]);
+}
+
 /* ---------- Disponible en formato tabla: "3 HB ROSES FREEDOM 50 25 0,35" (cajas, tipo, variedad, largo, tallos/bunch, precio/tallo) ---------- */
 const TAB_RX = /^(\d+)\s*(HB|QB|EB|FB)\s+(.+?)\s+(\d{2,3})\s+(\d{1,3})\s+(\d+(?:[.,]\d+)?)\s*$/i;
 const TAB_TIPO = [[/^GARDEN\s+ROSES?\s+/i,[2,1]],[/^SPRAY\s+ROSES?\s+/i,[3]],[/^ROSES?\s+/i,[1,2]]];
@@ -1462,7 +1527,17 @@ function parseTabla(txt){
 function parseDispoText(txt){
   const L=txt.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
   const tab=L.filter(l=>TAB_RX.test(l)).length;
-  return tab && tab>=L.length*0.5 ? parseTabla(txt) : parseDispoTextProto(txt);
+  if(tab && tab>=L.length*0.5) return parseTabla(txt);
+  // precio en la misma línea ($0,64 / 10st / 80cm): formato libre. Si no, el de Mystic (precio en el título de la sección).
+  const inl=L.filter(l=>INL_START.test(l) && (/\$\s*\d/.test(l) || /\d\s*(st|stems?)\b/i.test(l) || /\d+[.,]\d+\s*$/.test(l))).length;
+  const prod=L.filter(l=>INL_START.test(l)).length;
+  if(inl && inl>=prod*0.5){
+    const A=parseInline(txt), B=parseDispoTextProto(txt);
+    return B.filter(r=>r.id).length > A.filter(r=>r.id).length ? B : A;
+  }
+  const B=parseDispoTextProto(txt);
+  if(prod && B.filter(r=>r.id).length < prod*0.5){ const A=parseInline(txt); if(A.filter(r=>r.id).length > B.filter(r=>r.id).length) return A; }
+  return B;
 }
 
 /* ---------- Bunches por caja (HB / QB / EB). Se edita en Panel › Entregas y se guarda en config_envios.bunches_por_caja ---------- */
@@ -1477,7 +1552,7 @@ function bunchesPorCaja(t, largo, caja){
 // Primero lo que dice la finca para ese producto (p. ej. Bellaflor: "Pack 30 · HB"); si no, la tabla general.
 function bunchesDe(r, finca){
   const it=BYID[r.id]; if(!it||r.cajas==null) return null;
-  if(r.uxc){ if(r.unidad==="bunches") return r.cajas*r.uxc; if(r.tb) return Math.round(r.cajas*r.uxc/r.tb); return null; }   // la finca dijo cuánto trae la caja
+  if(r.uxc){ if(r.unidad==="bunches") return r.cajas*r.uxc; const tb=r.tb||(it.o[0]&&it.o[0].s)||tallosDefault(it); return tb? Math.round(r.cajas*r.uxc/tb) : null; }   // la finca dijo cuánto trae la caja
   const f = finca ?? r.finca ?? (typeof DRAFT!=="undefined" && DRAFT ? DRAFT.finca : null);
   const caja=(r.caja||"").toUpperCase();
   const of=(OFFER_LIVE[r.id]||[]).filter(o=>o.finca_id==f && o.bunches_por_caja && (!r.largo||!o.largo_cm||o.largo_cm===r.largo));
@@ -1510,7 +1585,7 @@ function bindCajasCard(){
 
 /* ---------- Pegar disponibles de varias fincas a la vez y reconocer la finca sola ---------- */
 const FINCA_KEYS = [[/naranjo/i,"Naranjo"],[/mystic/i,"Mystic"],[/bell?a\s*flor|bellarose|bellaflor/i,"Bellaflor"],[/solandino|proteas/i,"Proteas Solandino"],
-  [/agrocoex/i,"Agrocoex"],[/colossus/i,"Colossus"],[/dyans|daisy/i,"Dyans"],[/hacienda|fdlh/i,"Hacienda"]];
+  [/agrocoex/i,"Agrocoex"],[/colossus|flowers?\s*design/i,"Colossus"],[/dyans|daisy/i,"Dyans"],[/hacienda|fdlh/i,"Hacienda"],[/endless|esfarms/i,"Endless"]];
 function fincaPorNombre(txt){
   for(const [rx,n] of FINCA_KEYS) if(rx.test(txt)){ const id=Object.keys(FARMS).find(k=>FARMS[k].toLowerCase().includes(n.toLowerCase())); if(id) return +id; }
   return null;
