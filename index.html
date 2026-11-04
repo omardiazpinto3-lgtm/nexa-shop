@@ -205,6 +205,7 @@ footer.site .wrap{padding-block:26px;display:flex;justify-content:space-between;
 .dreview input{border:1px solid var(--line);background:var(--surface);color:#102A20;padding:.3em .4em;font:inherit;font-size:.85rem}
 .dreview input[list]{width:100%;min-width:180px}
 .dreview tr.warn td{background:#FFF3C4}
+.dreview tr.nueva-finca td{background:#E8F5E9}
 .dreview tr.ign td{opacity:.45}
 .dreview td.orig{font-size:.8rem;color:var(--muted);max-width:260px}
 .dispo-cell{font-size:.78rem;line-height:1.35}
@@ -1034,14 +1035,23 @@ let tt; function toast(msg){ clearTimeout(tt); let t=$("#toast"); if(!t){ t=docu
 /* =================== DISPONIBLES DE FINCAS (solo admin) =================== */
 const NK = s => String(s||"").normalize("NFKD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/&/g,"and").replace(/[^a-z0-9]/g,"");
 function byKey(){ const m={}; ITEMS.forEach(i=>{ m[NK(i.n)]=i.id; }); Object.entries(CAT.alias||{}).forEach(([k,id])=>{ if(!(k in m)&&BYID[id]) m[k]=id; }); return m; }
+function byKeyBD(){ const m={}; Object.values(ALL_VARS_BD).forEach(v=>{ m[NK(v.n)]=v.id; }); Object.entries(CAT.alias||{}).forEach(([k,id])=>{ if(!(k in m)&&ALL_VARS_BD[id]) m[k]=id; }); return m; }
 function dice(a,b){ if(a===b) return 1; if(a.length<2||b.length<2) return 0; const m=new Map(); for(let i=0;i<a.length-1;i++){ const g=a.slice(i,i+2); m.set(g,(m.get(g)||0)+1); } let n=0; for(let i=0;i<b.length-1;i++){ const g=b.slice(i,i+2), c=m.get(g); if(c){ n++; m.set(g,c-1); } } return 2*n/(a.length+b.length-2); }
 function findVar(name, tipos){
   const k=NK(name), M=byKey();
-  if(M[k] && (!tipos || tipos.includes(BYID[M[k]].t))) return M[k];
+  if(M[k] && (!tipos || !BYID[M[k]] || tipos.includes(BYID[M[k]].t))) return M[k];
   let best=null, bs=0;
   ITEMS.forEach(i=>{ if(tipos && !tipos.includes(i.t)) return; const s=dice(NK(i.n),k); if(s>bs){ bs=s; best=i.id; } });
-  return bs>=0.86 ? best : null;
+  if(bs>=0.86) return best;
+  // No est\u00e1 en oferta_finca pero puede existir en BD global
+  const MBD=byKeyBD();
+  if(MBD[k]) return MBD[k];
+  let bestBD=null, bsBD=0;
+  Object.values(ALL_VARS_BD).forEach(v=>{ if(tipos && !tipos.includes(v.t)) return; const s=dice(NK(v.n),k); if(s>bsBD){ bsBD=s; bestBD=v.id; } });
+  return bsBD>=0.86 ? bestBD : null;
 }
+// Verifica si un variedad_id existe en oferta_finca para la finca actual del draft
+function enOfertaFinca(varId, fincaId){ return !!(OFFER_LIVE[varId] && OFFER_LIVE[varId].some(o=>o.finca_id===+fincaId)); }
 const DSEC = [["MINI GERBERA","Gerbera Mini ",/^Mini Gerb(era)?\s+/i],["LILIES LA","LA Hybrids ",null],["LA LILIES","LA Hybrids ",null],["OT LILIES","O.T Lily ",null],
   ["BUTTERFLY LILIES","Butterfly Lily ",null],["ROSE LILIES","Rose Lily ",/^Rose ?lilies\s+/i],["POMPOM","Chrysanthemum Pompom ",/^Pompom\s+/i],
   ["SPRAY","",null],["ALSTROEMERIA","Alstroemeria ",null],["LARKSPUR","Larkspur ",null],["DELPHINIUM","Delphinium ",null],["RANUNCULUS","Ranunculus ",null],["ANEMONE","Anemone ",null]];
@@ -1126,7 +1136,7 @@ function renderDispoProto(){
         <td class="r"><button class="btn-sm" type="button" data-ver="${i}">Ver</button> <button class="btn-sm" type="button" data-del="${i}">Borrar</button></td></tr>`).join("")}
     </tbody></table></div><div id="dVer"></div>` : `<p class="empty">Todavía no hay disponibles cargados.</p>`}
   </div>
-  <datalist id="dlVars">${ITEMS.map(i=>`<option value="${esc(i.n)}">`).join("")}</datalist>`;
+  <datalist id="dlVars">${ITEMS.map(i=>`<option value="${esc(i.n)}">`).join("")}${Object.values(ALL_VARS_BD).filter(v=>!BYID[v.id]).map(v=>`<option value="${esc(v.n)}">`).join("")}</datalist>`;
   const msg=t=>{ $("#dMsg").textContent=t; };
   if(DRAFT) renderDraft();
   $("#dRead").onclick=async()=>{
@@ -1160,22 +1170,31 @@ function renderDispoProto(){
     $("#dVer").scrollIntoView({behavior:"smooth"}); });
 }
 function renderDraftProto(){
-  const D=DRAFT, ok=D.rows.filter(r=>r.id&&!r.ignorar).length, bad=D.rows.filter(r=>!r.id&&!r.ignorar).length;
-  $("#dReview").innerHTML=`<div class="sec-h"><h2 class="disp">Revisar · ${esc(FARMS[D.finca])} · ${esc(D.fecha)}</h2><span style="font-size:.82rem;color:var(--muted)"><b>${ok}</b> reconocidas${bad?` · <b style="color:var(--wine)">${bad}</b> en amarillo para corregir`:""}. Escribe la variedad correcta o marca “Ignorar”.</span></div>
-  <div class="tw"><table class="adm dreview"><thead><tr><th>Ignorar</th><th>Línea original</th><th>Variedad en el catálogo</th><th class="r">Largo</th><th class="r">Cajas</th><th>Caja</th><th class="r">Costo/tallo</th></tr></thead><tbody>
-  ${D.rows.map((r,i)=>`<tr class="${r.ignorar?"ign":(!r.id?"warn":"")}"><td><input type="checkbox" data-i="${i}" data-f="ignorar" ${r.ignorar?"checked":""} aria-label="Ignorar línea"></td>
-    <td class="orig">${esc(r.texto)}</td>
-    <td><input list="dlVars" data-i="${i}" data-f="var" value="${esc(r.id&&BYID[r.id]?BYID[r.id].n:"")}" placeholder="${esc(r.nombre||"")} — no está en el catálogo" aria-label="Variedad"></td>
+  const D=DRAFT;
+  const ok=D.rows.filter(r=>r.id&&!r.ignorar&&enOfertaFinca(r.id,D.finca)).length;
+  const nueva=D.rows.filter(r=>r.id&&!r.ignorar&&!enOfertaFinca(r.id,D.finca)).length;
+  const bad=D.rows.filter(r=>!r.id&&!r.ignorar).length;
+  $(“#dReview”).innerHTML=`<div class=”sec-h”><h2 class=”disp”>Revisar · ${esc(FARMS[D.finca])} · ${esc(D.fecha)}</h2><span style=”font-size:.82rem;color:var(--muted)”><b>${ok}</b> reconocidas${nueva?` · <b style=”color:var(--green,#2a7a2a)”>${nueva}</b> nuevas para esta finca (se agregarán al catálogo)`:””} ${bad?` · <b style=”color:var(--wine)”>${bad}</b> en amarillo para corregir`:””}. Escribe la variedad correcta o marca “Ignorar”.</span></div>
+  <div class=”tw”><table class=”adm dreview”><thead><tr><th>Ignorar</th><th>Línea original</th><th>Variedad en el catálogo</th><th class=”r”>Largo</th><th class=”r”>Cajas</th><th>Caja</th><th class=”r”>Costo/tallo</th></tr></thead><tbody>
+  ${D.rows.map((r,i)=>{
+    const esNueva = r.id && !r.ignorar && !enOfertaFinca(r.id, D.finca);
+    const cls = r.ignorar ? “ign” : (!r.id ? “warn” : (esNueva ? “nueva-finca” : “”));
+    const varNombre = r.id && (BYID[r.id]||ALL_VARS_BD[r.id]) ? (BYID[r.id]||ALL_VARS_BD[r.id]).n : “”;
+    const placeholder = r.nombre ? (r.id ? “” : r.nombre+” — no está en el catálogo”) : “— no está en el catálogo”;
+    return `<tr class=”${cls}”><td><input type=”checkbox” data-i=”${i}” data-f=”ignorar” ${r.ignorar?”checked”:””} aria-label=”Ignorar línea”></td>
+    <td class=”orig”>${esc(r.texto)}</td>
+    <td><input list=”dlVars” data-i=”${i}” data-f=”var” value=”${esc(varNombre)}” placeholder=”${esc(placeholder)}” aria-label=”Variedad”>${esNueva?`<span style=”font-size:.75rem;color:var(--green,#2a7a2a);margin-left:4px”>★ nueva para esta finca</span>`:””}</td>
     <td class="r"><input type="number" data-i="${i}" data-f="largo" value="${r.largo??""}" style="width:64px"></td>
     <td class="r"><input type="number" data-i="${i}" data-f="cajas" value="${r.cajas??""}" style="width:56px"></td>
     <td>${esc(r.caja||"")}${r.uxc?" x "+r.uxc+(r.unidad==="bunches"?"bu":""):""}${r.tb?` · ${r.tb} tallos/bunch`:""}${bunchesDe(r)?` · ≈ ${bunchesDe(r)} bunches`:""}</td>
-    <td class="r"><input type="number" step="0.01" data-i="${i}" data-f="costo" value="${r.costo??""}" style="width:70px"></td></tr>`).join("")}
+    <td class="r"><input type="number" step="0.01" data-i="${i}" data-f="costo" value="${r.costo??""}" style="width:70px"></td></tr>`;
+  }).join("")}
   </tbody></table></div>
   <div class="dispo-actions"><button class="btn" type="button" id="dOk">Confirmar y guardar</button><button class="line-btn" type="button" id="dCancel">Descartar</button></div>`;
   document.querySelectorAll("#dReview [data-f]").forEach(el=>el.onchange=()=>{
     const r=D.rows[+el.dataset.i], f=el.dataset.f;
     if(f==="ignorar") r.ignorar=el.checked;
-    else if(f==="var"){ r.id=byKey()[NK(el.value)]||null; }
+    else if(f==="var"){ r.id=byKey()[NK(el.value)]||byKeyBD()[NK(el.value)]||null; }
     else { const v=parseFloat(el.value); r[f]=isFinite(v)?v:null; }
     renderDraft();
   });
@@ -1638,6 +1657,7 @@ const ST_FROM_DB = {pendiente_pago:"awaiting", pagado:"paid", en_compra:"sourcin
 const ST_TO_DB = {awaiting:"pendiente_pago", paid:"pagado", sourcing:"en_compra", shipped:"enviado", delivered:"entregado", cancelled:"cancelado"};
 const CL_FROM_DB = {pendiente:"pending", aprobado:"approved", rechazado:"rejected", suspendido:"suspended"};
 let ALIAS_LIVE = {}, SHIPS = null, CONFIRMED = {}, OFFER_LIVE = {}, LISTAS = [], CUR_INFO = null, NOTICE = null;
+let ALL_VARS_BD = {};  // todas las variedades activas en BD, sin importar si tienen oferta_finca
 let info = biz => CUR_INFO || {contact:"",phone:"",addr:"",hours:""};
 
 async function all(mk){ let out=[], from=0; for(;;){ const {data,error}=await mk().range(from,from+999); if(error) throw error; out=out.concat(data||[]); if(!data||data.length<1000) break; from+=1000; } return out; }
@@ -1742,6 +1762,8 @@ async function loadAdmin(){
   ]);
   FARMS = Object.fromEntries((f.data||[]).map(x=>[x.id,x.nombre]));
   OFFER_LIVE={}; of.forEach(o=>(OFFER_LIVE[o.variedad_id] ||= []).push(o));
+  // Cargar TODAS las variedades activas de BD (no solo las que tienen oferta_finca)
+  try{ const av=await all(()=>sb.from("variedades").select("id,variedad,tipo_id,familia").eq("activo",true).order("id")); ALL_VARS_BD={}; av.forEach(v=>{ ALL_VARS_BD[v.id]={id:v.id,n:v.variedad,t:v.tipo_id,f:v.familia||""}; }); }catch(e){}
   try{ const al=await all(()=>sb.from("alias_variedad").select("alias,variedad_id").order("variedad_id")); ALIAS_LIVE={}; al.forEach(a=>{ ALIAS_LIVE[NK(a.alias)]=a.variedad_id; }); CAT.alias=ALIAS_LIVE; }catch(e){}
   state.dispo = groupDispo(dp); LISTAS = ls.data||[];
   state.clients = cl.map(c=>({id:c.id, biz:c.negocio||c.email, type:c.tipo_negocio||"", email:c.email||"", status:CL_FROM_DB[c.estado]||"pending", estado:c.estado,
@@ -1762,6 +1784,16 @@ async function saveDispo(D){
   const ok=D.rows.filter(r=>r.id&&!r.ignorar), sin=D.rows.filter(r=>!r.id&&!r.ignorar);
   if(!ok.length){ toast("No hay líneas reconocidas para guardar"); return; }
   const b=$("#dOk"); b.disabled=true; b.textContent="Guardando…";
+  // Auto-crear oferta_finca para variedades en BD global que no tienen entrada para esta finca
+  const nuevasParaFinca = ok.filter(r=>!enOfertaFinca(r.id,D.finca));
+  if(nuevasParaFinca.length){
+    const ofRows = nuevasParaFinca.map(r=>({finca_id:+D.finca, variedad_id:r.id, largo_cm:r.largo?Math.round(r.largo):null, color:"", presentacion:"", costo_usd:r.costo!=null?+r.costo:null, tallos_por_bunch:r.tb?Math.round(r.tb):null, activo:true, actualizado:D.fecha}));
+    const {data:ofNueva, error:ofErr} = await sb.from("oferta_finca").insert(ofRows, {ignoreDuplicates:true}).select();
+    if(ofErr){ b.disabled=false; b.textContent="Confirmar y guardar"; toast("No se pudo agregar al catálogo: "+ofErr.message); return; }
+    // Actualizar OFFER_LIVE con las nuevas entradas
+    (ofNueva||ofRows).forEach(o=>{ (OFFER_LIVE[o.variedad_id] ||= []).push(o); });
+    toast(`${nuevasParaFinca.length} ${nuevasParaFinca.length===1?"variedad agregada":"variedades agregadas"} al catálogo de ${FARMS[D.finca]}`);
+  }
   const toRow=r=>({finca_id:+D.finca, fecha:D.fecha, variedad_id:r.id||null, texto_original:r.texto||r.nombre||"", nombre_leido:r.nombre||null, largo_cm:r.largo?Math.round(r.largo):null, presentacion:r.pres||"",
     cajas:r.cajas==null?null:Math.round(r.cajas), tipo_caja:r.caja||null, unidades_por_caja:r.uxc==null?null:Math.round(r.uxc), unidad:r.unidad||null, costo_tallo_usd:r.costo==null?null:r.costo, nota:r.nota||null, ...(r.tb?{tallos_por_bunch:Math.round(r.tb)}:{})});
   const del = await sb.from("disponibilidad_finca").delete().eq("finca_id",+D.finca).eq("fecha",D.fecha);
