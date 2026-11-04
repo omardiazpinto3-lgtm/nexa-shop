@@ -1174,16 +1174,16 @@ function renderDraftProto(){
   const ok=D.rows.filter(r=>r.id&&!r.ignorar&&enOfertaFinca(r.id,D.finca)).length;
   const nueva=D.rows.filter(r=>r.id&&!r.ignorar&&!enOfertaFinca(r.id,D.finca)).length;
   const bad=D.rows.filter(r=>!r.id&&!r.ignorar).length;
-  $(“#dReview”).innerHTML=`<div class=”sec-h”><h2 class=”disp”>Revisar · ${esc(FARMS[D.finca])} · ${esc(D.fecha)}</h2><span style=”font-size:.82rem;color:var(--muted)”><b>${ok}</b> reconocidas${nueva?” · <b style=\”color:var(--green,#2a7a2a)\”>”+nueva+”</b> nuevas para esta finca (se agregarán al catálogo)”:””}${bad?” · <b style=\”color:var(--wine)\”>”+bad+”</b> en amarillo para corregir”:””}. Escribe la variedad correcta o marca “Ignorar”.</span></div>
-  <div class=”tw”><table class=”adm dreview”><thead><tr><th>Ignorar</th><th>Línea original</th><th>Variedad en el catálogo</th><th class=”r”>Largo</th><th class=”r”>Cajas</th><th>Caja</th><th class=”r”>Costo/tallo</th></tr></thead><tbody>
+  $("#dReview").innerHTML=`<div class="sec-h"><h2 class="disp">Revisar · ${esc(FARMS[D.finca])} · ${esc(D.fecha)}</h2><span style="font-size:.82rem;color:var(--muted)"><b>${ok}</b> reconocidas${nueva?" · <b style=\"color:var(--green,#2a7a2a)\">"+nueva+"</b> nuevas para esta finca (se agregarán al catálogo)":""}${bad?" · <b style=\"color:var(--wine)\">"+bad+"</b> en amarillo para corregir":""}. Escribe la variedad correcta o marca “Ignorar”.</span></div>
+  <div class="tw"><table class="adm dreview"><thead><tr><th>Ignorar</th><th>Línea original</th><th>Variedad en el catálogo</th><th class="r">Largo</th><th class="r">Cajas</th><th>Caja</th><th class="r">Costo/tallo</th></tr></thead><tbody>
   ${D.rows.map((r,i)=>{
     const esNueva = r.id && !r.ignorar && !enOfertaFinca(r.id, D.finca);
-    const cls = r.ignorar ? “ign” : (!r.id ? “warn” : (esNueva ? “nueva-finca” : “”));
-    const varNombre = r.id && (BYID[r.id]||ALL_VARS_BD[r.id]) ? (BYID[r.id]||ALL_VARS_BD[r.id]).n : “”;
-    const placeholder = r.nombre ? (r.id ? “” : r.nombre+” — no está en el catálogo”) : “— no está en el catálogo”;
-    return `<tr class=”${cls}”><td><input type=”checkbox” data-i=”${i}” data-f=”ignorar” ${r.ignorar?”checked”:””} aria-label=”Ignorar línea”></td>
-    <td class=”orig”>${esc(r.texto)}</td>
-    <td><input list=”dlVars” data-i=”${i}” data-f=”var” value=”${esc(varNombre)}” placeholder=”${esc(placeholder)}” aria-label=”Variedad”>${esNueva?`<span style=”font-size:.75rem;color:var(--green,#2a7a2a);margin-left:4px”>★ nueva para esta finca</span>`:””}</td>
+    const cls = r.ignorar ? "ign" : (!r.id ? "warn" : (esNueva ? "nueva-finca" : ""));
+    const varNombre = r.id && (BYID[r.id]||ALL_VARS_BD[r.id]) ? (BYID[r.id]||ALL_VARS_BD[r.id]).n : "";
+    const placeholder = r.nombre ? (r.id ? "" : r.nombre+" — no está en el catálogo") : "— no está en el catálogo";
+    return `<tr class="${cls}"><td><input type="checkbox" data-i="${i}" data-f="ignorar" ${r.ignorar?"checked":""} aria-label="Ignorar línea"></td>
+    <td class="orig">${esc(r.texto)}</td>
+    <td><input list="dlVars" data-i="${i}" data-f="var" value="${esc(varNombre)}" placeholder="${esc(placeholder)}" aria-label="Variedad">${esNueva?`<span style="font-size:.75rem;color:var(--green,#2a7a2a);margin-left:4px">★ nueva para esta finca</span>`:""}</td>
     <td class="r"><input type="number" data-i="${i}" data-f="largo" value="${r.largo??""}" style="width:64px"></td>
     <td class="r"><input type="number" data-i="${i}" data-f="cajas" value="${r.cajas??""}" style="width:56px"></td>
     <td>${esc(r.caja||"")}${r.uxc?" x "+r.uxc+(r.unidad==="bunches"?"bu":""):""}${r.tb?` · ${r.tb} tallos/bunch`:""}${bunchesDe(r)?` · ≈ ${bunchesDe(r)} bunches`:""}</td>
