@@ -81,7 +81,7 @@ img{background:#e8e4dc}
 .mvals{display:flex;flex-wrap:wrap;gap:14px 28px}
 .mval{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.82)}
 .mval::before{content:'— '}
-.cta{width:100%;min-height:100vh;background:var(--g);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 48px;position:relative;overflow:hidden}
+.cta{width:100%;min-height:100vh;background:var(--g);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 48px;position:relative}
 .ctapat{position:absolute;inset:0;opacity:.04;background-image:radial-gradient(circle,#fff 1px,transparent 1px);background-size:28px 28px}
 .ctalogo{font-family:'Cormorant Garamond',serif;font-size:clamp(52px,8vw,88px);font-weight:300;color:#fff;letter-spacing:.12em;line-height:1}
 .ctalogo em{font-style:italic;color:var(--gold)}
@@ -98,7 +98,7 @@ img{background:#e8e4dc}
 .btn-secondary{display:block;width:100%;padding:15px 48px;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.4);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:400;letter-spacing:.18em;text-transform:uppercase;text-decoration:none;cursor:pointer;transition:all .2s}
 .btn-secondary:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.7)}
 .ctaorder{margin-top:16px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.35)}
-.overlay{display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);align-items:center;justify-content:center}
+.overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:rgba(0,0,0,.75);align-items:center;justify-content:center;-webkit-overflow-scrolling:touch}
 .overlay.open{display:flex}
 .modal{background:#fff;max-width:460px;width:90%;padding:48px 44px;position:relative}
 .modal-close{position:absolute;top:16px;right:20px;background:none;border:none;font-size:22px;cursor:pointer;color:#999}
@@ -298,24 +298,52 @@ img{background:#e8e4dc}
 </div>
 
 <script>
-document.querySelectorAll('img').forEach(img => {
+// Image fallback
+document.querySelectorAll('img').forEach(function(img){
   img.onerror = function(){ this.style.opacity='0'; };
 });
-function openModal(){ document.getElementById('overlay').classList.add('open'); document.body.style.overflow='hidden'; }
-function closeModal(){ document.getElementById('overlay').classList.remove('open'); document.body.style.overflow=''; }
-document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
+
+// Modal
+var overlay = document.getElementById('overlay');
+
+function openModal(){
+  overlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(){
+  overlay.style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+overlay.addEventListener('click', function(e){
+  if(e.target === overlay) closeModal();
+});
+
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape') closeModal();
+});
+
 function submitForm(e) {
   e.preventDefault();
-  const f = e.target;
-  const btn = f.querySelector('.modal-submit');
-  btn.textContent = 'Sending…'; btn.disabled = true;
-  const name = f.shopname.value, shop = f.business.value, email = f.email.value, phone = f.phone.value, volume = f.volume.value;
-  const body = `New wholesale application from Lookbook:\n\nName: ${name}\nShop: ${shop}\nEmail: ${email}\nPhone: ${phone||'N/A'}\nVolume: ${volume||'N/A'}`;
+  var f = e.target;
+  var btn = f.querySelector('.modal-submit');
+  btn.textContent = 'Sending…';
+  btn.disabled = true;
+
+  var name = f.shopname.value;
+  var shop = f.business.value;
+  var email = f.email.value;
+  var phone = f.phone.value || 'N/A';
+  var volume = f.volume.value || 'N/A';
+
+  var body = 'New wholesale application from Lookbook:\n\nName: ' + name + '\nShop: ' + shop + '\nEmail: ' + email + '\nPhone: ' + phone + '\nVolume: ' + volume;
+  var subject = 'New Wholesale Application — ' + shop;
+  var mailto = 'mailto:omar@nexaflowersgroup.com?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+
   f.style.display = 'none';
   document.getElementById('modalSuccess').style.display = 'block';
-  setTimeout(() => {
-    window.location.href = `mailto:omar@nexaflowersgroup.com?subject=${encodeURIComponent('New Wholesale Application — '+shop)}&body=${encodeURIComponent(body)}`;
-  }, 1200);
+
+  setTimeout(function(){ window.location.href = mailto; }, 1200);
 }
 </script>
 </body>
