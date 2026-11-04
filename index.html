@@ -1174,7 +1174,7 @@ function renderDraftProto(){
   const ok=D.rows.filter(r=>r.id&&!r.ignorar&&enOfertaFinca(r.id,D.finca)).length;
   const nueva=D.rows.filter(r=>r.id&&!r.ignorar&&!enOfertaFinca(r.id,D.finca)).length;
   const bad=D.rows.filter(r=>!r.id&&!r.ignorar).length;
-  $(“#dReview”).innerHTML=`<div class=”sec-h”><h2 class=”disp”>Revisar · ${esc(FARMS[D.finca])} · ${esc(D.fecha)}</h2><span style=”font-size:.82rem;color:var(--muted)”><b>${ok}</b> reconocidas${nueva?` · <b style=”color:var(--green,#2a7a2a)”>${nueva}</b> nuevas para esta finca (se agregarán al catálogo)`:””} ${bad?` · <b style=”color:var(--wine)”>${bad}</b> en amarillo para corregir`:””}. Escribe la variedad correcta o marca “Ignorar”.</span></div>
+  $(“#dReview”).innerHTML=`<div class=”sec-h”><h2 class=”disp”>Revisar · ${esc(FARMS[D.finca])} · ${esc(D.fecha)}</h2><span style=”font-size:.82rem;color:var(--muted)”><b>${ok}</b> reconocidas${nueva?” · <b style=\”color:var(--green,#2a7a2a)\”>”+nueva+”</b> nuevas para esta finca (se agregarán al catálogo)”:””}${bad?” · <b style=\”color:var(--wine)\”>”+bad+”</b> en amarillo para corregir”:””}. Escribe la variedad correcta o marca “Ignorar”.</span></div>
   <div class=”tw”><table class=”adm dreview”><thead><tr><th>Ignorar</th><th>Línea original</th><th>Variedad en el catálogo</th><th class=”r”>Largo</th><th class=”r”>Cajas</th><th>Caja</th><th class=”r”>Costo/tallo</th></tr></thead><tbody>
   ${D.rows.map((r,i)=>{
     const esNueva = r.id && !r.ignorar && !enOfertaFinca(r.id, D.finca);
@@ -1850,6 +1850,7 @@ async function bulkAdjust(pct, t){
 
 /* ---------- login, registro y estados de la cuenta ---------- */
 function renderLogin(){
+  if(!state.user && /^#(register|apply|join)$/.test(location.hash)){ renderRegister(""); return; }
   const u=state.user, st=u&&u.status;
   const msg = st==="pending" ? `<div class="pending"><span class="caps" style="color:var(--warn)">Application under review</span>
         <h2 class="disp" style="margin:0">Thanks${u.biz?", "+esc(u.biz):""}.</h2>
@@ -1897,6 +1898,7 @@ function sentLink(em){
   $("#again").onclick=renderLogin;
 }
 function renderRegister(em){
+  if(!$("#lr")) $("#app").innerHTML=`<section class="login"><div class="l"><span class="caps" style="color:var(--gold)">Wholesale only · Chicago</span><h1 class="disp">Your inventory.<br><i>Your account.</i></h1><p>Account pricing, one weekly delivery to Chicago and your order history, for professional floral businesses.</p></div><div class="r" id="lr"></div></section>`;
   $("#lr").innerHTML = `<h2 class="disp">Request wholesale access</h2>
     <p style="margin:0;font-size:.92rem;color:var(--muted)">For flower shops, florists and event designers. We review each business and approve accounts within one business day.</p>
     <form id="rf" class="field" style="gap:12px" novalidate>
