@@ -28,6 +28,17 @@ img{background:#e8e4dc}
 .sec{min-height:100vh;display:flex;flex-direction:row;position:relative}
 .sl{width:38%;background:var(--cream);display:flex;flex-direction:column;justify-content:center;padding:56px 44px;position:relative;flex-shrink:0}
 .sl.right{order:2}
+@media(max-width:700px){
+  .sec{flex-direction:column}
+  .sl,.sl.right{width:100%;order:0;padding:40px 28px;min-height:auto}
+  .sr,.sr.left{order:1;min-height:60vw}
+  .coll-6,.coll-4,.coll-sum{height:70vw}
+  .clogo{left:24px;top:24px;font-size:16px}
+  .cover{padding:40px 24px}
+  .min{padding:48px 28px}
+  .cta{padding:60px 28px}
+  .cta-btns{max-width:100%}
+}
 .snum{font-family:'Cormorant Garamond',serif;font-size:110px;font-weight:300;line-height:1;color:rgba(0,0,0,.055);position:absolute;top:28px;left:24px;font-style:italic;pointer-events:none;user-select:none}
 .stag{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
 .stitle{font-family:'Cormorant Garamond',serif;font-size:clamp(36px,4.5vw,58px);font-weight:300;line-height:1;color:var(--dark)}
@@ -239,7 +250,7 @@ img{background:#e8e4dc}
   <div class="sr">
     <div class="coll-sum">
       <div class="ci-wrap c0"><img class="ci" src="https://rfmuzesevejapizoodhu.supabase.co/storage/v1/object/public/flores/o-t-lily-blush-zbms.jpg" alt="Summer Lily" loading="lazy"><div class="ci-label">Summer Lilies</div></div>
-      <div class="ci-wrap c1"><img class="ci" src="https://rfmuzesevejapizoodhu.supabase.co/storage/v1/object/public/flores/eucalyptus-baby-blue.jpg" alt="Eucalyptus Baby Blue" loading="lazy"></div>
+      <div class="ci-wrap c1"><img class="ci" src="https://rfmuzesevejapizoodhu.supabase.co/storage/v1/object/public/flores/bupleurum.jpg" alt="Bupleurum" loading="lazy" style="object-position:center center"></div>
       <div class="ci-wrap c2"><img class="ci" src="https://rfmuzesevejapizoodhu.supabase.co/storage/v1/object/public/flores/gypsophila-tinted-lavender-kiss-blossom.jpg" alt="Gypsophila" loading="lazy"></div>
       <div class="ci-wrap c3"><img class="ci" src="https://rfmuzesevejapizoodhu.supabase.co/storage/v1/object/public/flores/safari-sunset.jpg" alt="Safari Sunset" loading="lazy"></div>
     </div>
@@ -275,8 +286,8 @@ img{background:#e8e4dc}
   <div class="ctah">Your next bestselling arrangement starts here.</div>
   <p class="ctab">Browse <strong>549 varieties</strong> — roses, garden roses, spray, summer flowers, fillers, greens and exotics. New inventory every week. Fresh from the farm to your shop.</p>
   <div class="cta-btns">
-    <a class="btn-primary" href="#" onclick="openModal();return false;">Apply for a Wholesale Account</a>
-    <a class="btn-secondary" href="https://shop.nexaflowersgroup.com" target="_blank">Browse the Full Catalog →</a>
+    <button class="btn-primary" onclick="openModal()">Apply for a Wholesale Account</button>
+    <a class="btn-secondary" href="https://shop.nexaflowersgroup.com" target="_blank" rel="noopener">Browse the Full Catalog →</a>
   </div>
   <div class="contacts" style="margin-top:36px">
     <div class="contact"><span>Call</span>(773) 379-5759</div>
