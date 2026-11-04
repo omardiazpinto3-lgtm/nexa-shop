@@ -426,7 +426,7 @@ function route(){
   let v=(location.hash||"").replace("#","");
   const u=state.user, admin=u&&u.role==="admin", client=u&&u.role==="client"&&u.status==="approved";
   if(v==="resumen"||v==="catalog"){ renderResumen(); window.scrollTo(0,0); return; }
-  if(!admin && !client) v="login";
+  if(!admin && !client) v=/^(register|apply|join)$/.test(v)?"register":"login";
   else if(admin && !(v in ADMIN_VIEWS) && !v.startsWith("orden-")) v="semana";
   else if(client && !["shop","orders","account","checkout"].includes(v)) v="shop";
   const fab=document.getElementById("waFab"); if(fab) fab.hidden=admin;
@@ -437,7 +437,7 @@ function route(){
   $("#cartBtn").hidden = !client;
   $("#brandLink").href = admin? "#semana" : "#shop";
   if(v.startsWith("orden-")){ renderOrderDetail(v.slice(6)); updateCartN(); window.scrollTo(0,0); return; }
-  ({login:renderLogin, shop:renderShop, orders:renderOrders, account:renderAccount, checkout:renderCheckout,
+  ({login:renderLogin, register:()=>renderRegister(""), shop:renderShop, orders:renderOrders, account:renderAccount, checkout:renderCheckout,
     semana:renderWeek, dispo:renderDispo, hist:renderHist, pedidos:renderAllOrders, clientes:renderClients, catalogo:renderCatalog, entregas:renderDelivery})[v]();
   updateCartN(); window.scrollTo(0,0);
 }
@@ -1897,6 +1897,9 @@ function sentLink(em){
   $("#again").onclick=renderLogin;
 }
 function renderRegister(em){
+  if(!$("#lr")){
+    $("#app").innerHTML=`<section class="login"><div class="l"><span class="caps" style="color:var(--gold)">Wholesale only · Chicago</span><h1 class="disp">Your inventory.<br><i>Your account.</i></h1><p>Account pricing, one weekly delivery to Chicago and your order history, for professional floral businesses.</p></div><div class="r" id="lr"></div></section>`;
+  }
   $("#lr").innerHTML = `<h2 class="disp">Request wholesale access</h2>
     <p style="margin:0;font-size:.92rem;color:var(--muted)">For flower shops, florists and event designers. We review each business and approve accounts within one business day.</p>
     <form id="rf" class="field" style="gap:12px" novalidate>
