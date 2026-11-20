@@ -1298,14 +1298,19 @@ const PR = {
   M_ROSA:.40, M_GARDEN:.70, M_OTRAS:.50,
   GARDEN_MIN:{40:2.00,50:2.25,60:2.50,70:2.75,80:3.00,90:3.25},
   MANUAL:{"Red Panther|80":45},
-  FLETE_ROSA:.35,   // transporte finca→Chicago por tallo de rosa (incluye arancel y manejo), 20-nov-2026
-  PRIMA_ROSA:.20    // valor por frescura y tiempo: Freedom 40 = promedio de mayoristas en línea ($1.33/tallo)
+  // Rosas (20-nov-2026): transporte por caja HB repartido entre los tallos que trae según el largo
+  HB_KG:23, FLETE_KG:2.35,            // flete aéreo variable: $54.05 por HB
+  FIJO_ENVIO:380, HB_ENVIO:10,        // carguera $30 + broker $150 + camión al cooler $200, ponderado a 10 HB por envío
+  TALLOS_HB:{40:400,50:350,60:300,70:250,80:250,90:250,100:250},   // 40 y 50 cm por confirmar
+  PRIMA_ROSA:.45,   // valor por frescura y tiempo: deja la Freedom 40 ($0.25) en el promedio del mercado en línea ($1.33/tallo)
+  PISO_ROSA:.20     // la tabla mínima por largo (ROSA) sube 20%
 };
+const transpRosaTallo = l => (PR.HB_KG*PR.FLETE_KG + PR.FIJO_ENVIO/PR.HB_ENVIO) / (PR.TALLOS_HB[l] || (l<40?400:250));
 const ceil25 = x => Math.ceil(x/0.25-1e-9)*0.25;
 function tallosDefault(it){ return {1:25,2:12,3:10}[it.t] || (/^Gypsophila/i.test(it.f||"")?1 : /^(Leucospermum|Protea)$/.test(it.f||"")?5 : 10); }
 function costoPuesto(it,s,c){ return (s*c*(1+PR.T2)+PR.KG[it.t]*PR.T3+PR.T9)*(1+PR.T10); }
 function precioVenta(it,l,s,c){
-  if(it.t===1){ const base=PR.ROSA[l]!=null? ceil25(PR.ROSA[l]*s*(1+PR.PRIMA_ROSA)) : null; if(c==null) return base; return Math.max(ceil25(s*(c+PR.FLETE_ROSA)*(1+PR.T10)/(1-PR.T11-PR.M_ROSA)*(1+PR.PRIMA_ROSA)), base||0); }
+  if(it.t===1){ const base=PR.ROSA[l]!=null? ceil25(PR.ROSA[l]*s*(1+PR.PISO_ROSA)) : null; if(c==null) return base; return Math.max(ceil25(s*(c*(1+PR.T2)+transpRosaTallo(l))*(1+PR.T10)/(1-PR.T11-PR.M_ROSA)*(1+PR.PRIMA_ROSA)), base||0); }
   if(c==null) return null;
   if(it.t===2){ const piso= l? (PR.GARDEN_MIN[l]??2.00)*s : 0; return Math.max(ceil25(costoPuesto(it,s,c)/(1-PR.T11-PR.M_GARDEN)), ceil25(piso)); }
   const m = it.t===7 ? (PR.EXO[it.f]??.70) : PR.M_OTRAS;
