@@ -1297,13 +1297,15 @@ const PR = {
   EXO:{Leucadendron:.70,Leucospermum:.75,Protea:.70},
   M_ROSA:.40, M_GARDEN:.70, M_OTRAS:.50,
   GARDEN_MIN:{40:2.00,50:2.25,60:2.50,70:2.75,80:3.00,90:3.25},
-  MANUAL:{"Red Panther|80":45}
+  MANUAL:{"Red Panther|80":45},
+  FLETE_ROSA:.35,   // transporte finca→Chicago por tallo de rosa (incluye arancel y manejo), 20-nov-2026
+  PRIMA_ROSA:.20    // valor por frescura y tiempo: Freedom 40 = promedio de mayoristas en línea ($1.33/tallo)
 };
 const ceil25 = x => Math.ceil(x/0.25-1e-9)*0.25;
 function tallosDefault(it){ return {1:25,2:12,3:10}[it.t] || (/^Gypsophila/i.test(it.f||"")?1 : /^(Leucospermum|Protea)$/.test(it.f||"")?5 : 10); }
 function costoPuesto(it,s,c){ return (s*c*(1+PR.T2)+PR.KG[it.t]*PR.T3+PR.T9)*(1+PR.T10); }
 function precioVenta(it,l,s,c){
-  if(it.t===1){ const base=PR.ROSA[l]!=null? PR.ROSA[l]*s : null; if(c==null) return base; return Math.max(ceil25(costoPuesto(it,s,c)/(1-PR.T11-PR.M_ROSA)), base||0); }
+  if(it.t===1){ const base=PR.ROSA[l]!=null? ceil25(PR.ROSA[l]*s*(1+PR.PRIMA_ROSA)) : null; if(c==null) return base; return Math.max(ceil25(s*(c+PR.FLETE_ROSA)*(1+PR.T10)/(1-PR.T11-PR.M_ROSA)*(1+PR.PRIMA_ROSA)), base||0); }
   if(c==null) return null;
   if(it.t===2){ const piso= l? (PR.GARDEN_MIN[l]??2.00)*s : 0; return Math.max(ceil25(costoPuesto(it,s,c)/(1-PR.T11-PR.M_GARDEN)), ceil25(piso)); }
   const m = it.t===7 ? (PR.EXO[it.f]??.70) : PR.M_OTRAS;
