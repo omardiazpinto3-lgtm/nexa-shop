@@ -926,12 +926,48 @@ function renderDelivery(){
         <div class="preview"><span class="caps" style="color:var(--gold)">Así lo ve el cliente</span>
           <span>Next delivery</span><strong>${dayLabel(s[0].date)}</strong><span>Order by ${cutoffLabel(s[0].cutoff)}</span></div>
         <div class="field"><label>Próximas entregas</label>${s.map(x=>`<div class="kv"><span>${dayLabelEs(x.date)}</span><span>cierra ${cutoffLabelEs(x.cutoff)}</span></div>`).join("")}</div>
-        <p class="note" style="margin:0">El cierre da tiempo para comprar a las fincas, cortar, empacar y volar a Chicago. Si un día no hay envío (feriado), en la versión real se desactiva esa semana.</p>
+        <p class="note" style="margin:0">El cierre da tiempo para comprar a las fincas, cortar, empacar y volar a Chicago.</p>
       </div>
-    </form></div>` + cajasCardHTML();
+    </form>
+    <div class="sec-h"><h2 class="disp">Semanas bloqueadas</h2><span style="font-size:.82rem;color:var(--muted)">Feriados, pausas o semanas sin envío. El cliente no ve esas fechas.</span></div>
+    <div id="bloqList" style="margin-bottom:16px"></div>
+    <form id="bloqForm" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+      <div class="field" style="flex:0 0 auto"><label for="bloqDate">Bloquear miércoles</label><input id="bloqDate" type="date" style="width:170px"></div>
+      <div class="field" style="flex:1 1 200px"><label for="bloqMotivo">Motivo (opcional)</label><input id="bloqMotivo" type="text" placeholder="Holiday pause, Farm break…"></div>
+      <button class="gold-btn" type="submit" style="align-self:flex-end">Bloquear semana</button>
+    </form>
+    </div>` + cajasCardHTML();
     $("#sf").onchange=e=>{ const t=e.target; if(t.name==="day") CONFIG.day=+t.value; else if(t.id==="cd") CONFIG.cutoffDays=+t.value; else if(t.id==="ch") CONFIG.cutoffHour=+t.value; else { if(t.id==="fee") CONFIG.fee=Math.max(0,+t.value||0); if(t.id==="ffree") CONFIG.freeFrom=Math.max(0,+t.value||0); if(t.id==="fzel") CONFIG.zelle=t.value.trim(); if(t.id==="favi") CONFIG.avisos=t.value.trim(); return; } draw(); };
     $("#sf").onsubmit=e=>{ e.preventDefault(); CONFIG.fee=Math.max(0,+$("#fee").value||0); CONFIG.freeFrom=Math.max(0,+$("#ffree").value||0); CONFIG.zelle=$("#fzel").value.trim(); CONFIG.avisos=$("#favi").value.trim(); saveConfig(); void("Guardado. La tienda ahora entrega cada "+DAYS_ES[CONFIG.day]+"."); };
     bindCajasCard();
+    // --- semanas bloqueadas ---
+    async function loadBloqueadas(){
+      const {data} = await sb.from("entregas_bloqueadas").select("*").order("fecha");
+      const el = $("#bloqList");
+      if(!el) return;
+      if(!data||!data.length){ el.innerHTML=`<p class="note" style="margin:0">No hay semanas bloqueadas.</p>`; return; }
+      el.innerHTML=`<div class="tw"><table class="adm"><thead><tr><th>Miércoles</th><th>Motivo</th><th></th></tr></thead><tbody>`+
+        data.map(r=>`<tr><td><b>${new Date(r.fecha+"T12:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",year:"numeric"})}</b></td><td>${esc(r.motivo||"")}</td><td><button class="btn-sm no" data-del="${r.fecha}" type="button">Desbloquear</button></td></tr>`).join("")+
+        `</tbody></table></div>`;
+      el.querySelectorAll("[data-del]").forEach(b=>b.onclick=async()=>{
+        await sb.from("entregas_bloqueadas").delete().eq("fecha",b.dataset.del);
+        await loadConfig(); loadBloqueadas(); draw();
+        toast("Semana desbloqueada — la tienda ya muestra esa fecha.");
+      });
+    }
+    loadBloqueadas();
+    $("#bloqForm").onsubmit=async e=>{
+      e.preventDefault();
+      const fecha=$("#bloqDate").value, motivo=$("#bloqMotivo").value.trim();
+      if(!fecha){ toast("Elige una fecha."); return; }
+      const d=new Date(fecha+"T12:00:00");
+      if(d.getDay()!==3){ toast("Debe ser miércoles (el día de entrega configurado)."); return; }
+      const {error}=await sb.from("entregas_bloqueadas").upsert({fecha,motivo:motivo||null},{onConflict:"fecha"});
+      if(error){ toast("Error: "+error.message); return; }
+      $("#bloqDate").value=""; $("#bloqMotivo").value="";
+      await loadConfig(); loadBloqueadas(); draw();
+      toast("Semana bloqueada — los clientes no verán "+dayLabel(d)+".");
+    };
   };
   draw();
 }
