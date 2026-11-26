@@ -85,9 +85,14 @@ nav.main a:hover:not([aria-current]){background:var(--chip)}
 .cert-wrap{display:flex;align-items:center;gap:28px;padding-block:14px;flex-wrap:wrap}
 .cert-label{color:var(--gold);font-size:.64rem;white-space:nowrap;flex-shrink:0}
 .certs{display:flex;gap:24px;flex-wrap:wrap;align-items:center}
-.cert-item{display:flex;align-items:center;gap:7px;font-size:.74rem;letter-spacing:.04em;opacity:.9}
-.cert-item svg{flex-shrink:0;opacity:.75}
-@media (max-width:600px){.cert-label{display:none}.cert-wrap{justify-content:center}}
+.cert-item{display:flex;align-items:center;gap:8px;font-size:.72rem;letter-spacing:.04em;opacity:.88;text-decoration:none;color:inherit;line-height:1.3}
+.cert-item:hover{opacity:1}
+.cert-item img{flex-shrink:0;filter:brightness(0) invert(1);opacity:.85}
+.cert-item svg{flex-shrink:0}
+.cert-sep{width:1px;height:28px;background:rgba(247,242,233,.18);flex-shrink:0}
+.cert-count span{text-align:center}
+@media (max-width:900px){.cert-sep{display:none}.cert-wrap{gap:16px}}
+@media (max-width:600px){.cert-label{display:none}.cert-wrap{justify-content:center;padding-block:12px}}
 
 /* category rail */
 .rail{border-bottom:1px solid var(--line);background:var(--bg)}
@@ -522,13 +527,32 @@ function renderShop(){
     </div>
   </div></section>
   <div class="cert-strip"><div class="wrap cert-wrap">
-    <span class="caps cert-label">Trabajamos con fincas certificadas en Ecuador</span>
+    <span class="caps cert-label">Partner farms certified in Ecuador</span>
     <div class="certs">
-      <div class="cert-item"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M7 11l3 3 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Rainforest Alliance</span></div>
-      <div class="cert-item"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="2" y="2" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M7 11l3 3 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>BASC / SIBASC</span></div>
-      <div class="cert-item"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 2l2.4 7.2H21l-6.2 4.5 2.4 7.2L11 16.4l-6.2 5.5 2.4-7.2L1 9.2h7.6L11 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span>Expoflores</span></div>
-      <div class="cert-item"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 2C6 2 2 6 2 11s4 9 9 9 9-4 9-9-4-9-9-9z" stroke="currentColor" stroke-width="1.5"/><path d="M11 7v4l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>Scarab Solutions</span></div>
-      <div class="cert-item"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 2l1.5 4.5H17l-3.8 2.8 1.5 4.5L11 11.3l-3.7 2.5 1.5-4.5L5 6.5h4.5L11 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M6 17c2 1.5 8 1.5 10 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>8 Certificaciones Ambientales</span></div>
+      <a class="cert-item" href="https://www.rainforest-alliance.org" target="_blank" rel="noopener" title="Rainforest Alliance Certified">
+        <img src="https://www.rainforest-alliance.org/wp-content/themes/rainforest-replant/dist/img/ra_logo.svg" alt="Rainforest Alliance" height="28" loading="lazy">
+        <span>Rainforest Alliance</span>
+      </a>
+      <div class="cert-sep"></div>
+      <a class="cert-item" href="https://sibasc.wbasco.org" target="_blank" rel="noopener" title="BASC / SIBASC">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true"><rect x="1" y="1" width="26" height="26" rx="4" stroke="var(--gold)" stroke-width="1.5"/><text x="14" y="11" text-anchor="middle" font-family="var(--display)" font-size="6.5" fill="var(--band-fg)" font-weight="400" letter-spacing="1">BASC</text><text x="14" y="20" text-anchor="middle" font-family="var(--body)" font-size="4.5" fill="rgba(247,242,233,.65)" letter-spacing=".5">SIBASC</text></svg>
+        <span>BASC / SIBASC</span>
+      </a>
+      <div class="cert-sep"></div>
+      <a class="cert-item" href="https://expoflores.com" target="_blank" rel="noopener" title="Expoflores">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true"><circle cx="14" cy="14" r="12" stroke="var(--gold)" stroke-width="1.5"/><text x="14" y="12" text-anchor="middle" font-family="var(--display)" font-size="5.5" fill="var(--band-fg)" letter-spacing=".5">EXPO</text><text x="14" y="20" text-anchor="middle" font-family="var(--display)" font-size="5.5" fill="var(--gold)" letter-spacing=".5">FLORES</text></svg>
+        <span>Expoflores</span>
+      </a>
+      <div class="cert-sep"></div>
+      <a class="cert-item" href="https://www.scarab-solutions.com" target="_blank" rel="noopener" title="Scarab Solutions">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="M14 2l3 8.5H26l-7 5 2.5 8.5L14 19.5l-7.5 4.5L9 15.5 2 10.5h9L14 2z" stroke="var(--gold)" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg>
+        <span>Scarab Solutions</span>
+      </a>
+      <div class="cert-sep"></div>
+      <div class="cert-item cert-count">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true"><circle cx="14" cy="14" r="12" stroke="var(--gold)" stroke-width="1.5"/><text x="14" y="12" text-anchor="middle" font-family="var(--display)" font-size="9" fill="var(--gold)">8</text><text x="14" y="20" text-anchor="middle" font-family="var(--body)" font-size="4" fill="rgba(247,242,233,.7)" letter-spacing=".3">CERTS</text></svg>
+        <span>Environmental<br>Certifications</span>
+      </div>
     </div>
   </div></div>
   <div class="rail"><div class="wrap" id="rail" role="toolbar" aria-label="Flower types">
@@ -1454,13 +1478,32 @@ async function renderResumen(){
       </div></div>
   </div></section>
   <div class="cert-strip"><div class="wrap cert-wrap">
-    <span class="caps cert-label">Trabajamos con fincas certificadas en Ecuador</span>
+    <span class="caps cert-label">Partner farms certified in Ecuador</span>
     <div class="certs">
-      <div class="cert-item"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M7 11l3 3 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Rainforest Alliance</span></div>
-      <div class="cert-item"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="2" y="2" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M7 11l3 3 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>BASC / SIBASC</span></div>
-      <div class="cert-item"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 2l2.4 7.2H21l-6.2 4.5 2.4 7.2L11 16.4l-6.2 5.5 2.4-7.2L1 9.2h7.6L11 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span>Expoflores</span></div>
-      <div class="cert-item"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 2C6 2 2 6 2 11s4 9 9 9 9-4 9-9-4-9-9-9z" stroke="currentColor" stroke-width="1.5"/><path d="M11 7v4l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>Scarab Solutions</span></div>
-      <div class="cert-item"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 2l1.5 4.5H17l-3.8 2.8 1.5 4.5L11 11.3l-3.7 2.5 1.5-4.5L5 6.5h4.5L11 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M6 17c2 1.5 8 1.5 10 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>8 Certificaciones Ambientales</span></div>
+      <a class="cert-item" href="https://www.rainforest-alliance.org" target="_blank" rel="noopener" title="Rainforest Alliance Certified">
+        <img src="https://www.rainforest-alliance.org/wp-content/themes/rainforest-replant/dist/img/ra_logo.svg" alt="Rainforest Alliance" height="28" loading="lazy">
+        <span>Rainforest Alliance</span>
+      </a>
+      <div class="cert-sep"></div>
+      <a class="cert-item" href="https://sibasc.wbasco.org" target="_blank" rel="noopener" title="BASC / SIBASC">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true"><rect x="1" y="1" width="26" height="26" rx="4" stroke="var(--gold)" stroke-width="1.5"/><text x="14" y="11" text-anchor="middle" font-family="var(--display)" font-size="6.5" fill="var(--band-fg)" font-weight="400" letter-spacing="1">BASC</text><text x="14" y="20" text-anchor="middle" font-family="var(--body)" font-size="4.5" fill="rgba(247,242,233,.65)" letter-spacing=".5">SIBASC</text></svg>
+        <span>BASC / SIBASC</span>
+      </a>
+      <div class="cert-sep"></div>
+      <a class="cert-item" href="https://expoflores.com" target="_blank" rel="noopener" title="Expoflores">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true"><circle cx="14" cy="14" r="12" stroke="var(--gold)" stroke-width="1.5"/><text x="14" y="12" text-anchor="middle" font-family="var(--display)" font-size="5.5" fill="var(--band-fg)" letter-spacing=".5">EXPO</text><text x="14" y="20" text-anchor="middle" font-family="var(--display)" font-size="5.5" fill="var(--gold)" letter-spacing=".5">FLORES</text></svg>
+        <span>Expoflores</span>
+      </a>
+      <div class="cert-sep"></div>
+      <a class="cert-item" href="https://www.scarab-solutions.com" target="_blank" rel="noopener" title="Scarab Solutions">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="M14 2l3 8.5H26l-7 5 2.5 8.5L14 19.5l-7.5 4.5L9 15.5 2 10.5h9L14 2z" stroke="var(--gold)" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg>
+        <span>Scarab Solutions</span>
+      </a>
+      <div class="cert-sep"></div>
+      <div class="cert-item cert-count">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true"><circle cx="14" cy="14" r="12" stroke="var(--gold)" stroke-width="1.5"/><text x="14" y="12" text-anchor="middle" font-family="var(--display)" font-size="9" fill="var(--gold)">8</text><text x="14" y="20" text-anchor="middle" font-family="var(--body)" font-size="4" fill="rgba(247,242,233,.7)" letter-spacing=".3">CERTS</text></svg>
+        <span>Environmental<br>Certifications</span>
+      </div>
     </div>
   </div></div>
   <div class="wrap view" style="padding-top:28px">
