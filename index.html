@@ -313,7 +313,7 @@ table.adm select{border:1px solid var(--line);background:var(--surface);color:#1
 .res-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px}.res-card{display:flex;flex-direction:column;border:1px solid var(--line);background:var(--surface);text-decoration:none;color:inherit}.res-card:hover{border-color:var(--gold)}.res-ph{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:#fff;aspect-ratio:1/1}.res-ph img{width:100%;height:100%;object-fit:contain;background:#fff}.res-tx{padding:14px 16px 16px;display:flex;flex-direction:column;gap:4px}.res-tx h3{margin:0;font-size:1.5rem}.res-tx span{font-size:.9rem}.res-tx small{color:var(--muted);font-size:.78rem}.dispo-actions .btn,.dispo-actions .line-btn{min-height:44px}@media(max-width:700px){.dreview thead{display:none}.dreview tbody tr{display:grid;grid-template-columns:repeat(4,1fr);gap:6px 8px;padding:10px 4px;border-bottom:1px solid var(--line)}.dreview td{border:0!important;padding:0!important;text-align:left!important}.dreview td:nth-child(1){grid-column:1;grid-row:1}.dreview td.orig{grid-column:2/5;grid-row:1;font-size:.8rem}.dreview td:nth-child(3){grid-column:1/5}.dreview td input[data-f=var]{width:100%}.dreview td input[type=number]{width:100%!important}.dreview td:nth-child(6){font-size:.72rem;align-self:center}.dreview td:nth-child(4)::before{content:"Largo"}.dreview td:nth-child(5)::before{content:"Cajas"}.dreview td:nth-child(7)::before{content:"Costo/tallo"}.dreview td:nth-child(4)::before,.dreview td:nth-child(5)::before,.dreview td:nth-child(7)::before{display:block;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}#dTxt{font-size:16px}}.res-feat{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.res-feat figure{margin:0;position:relative;background:#fff;border:1px solid var(--line);aspect-ratio:1/1;overflow:hidden}.res-feat figure.big{grid-column:span 2;grid-row:span 2}.res-feat img{width:100%;height:100%;object-fit:contain;background:#fff}.res-feat figcaption{position:absolute;left:0;right:0;bottom:0;padding:10px 12px;background:linear-gradient(transparent,rgba(16,42,32,.78));color:#fff;display:flex;flex-direction:column;gap:2px}.res-feat figcaption b{font-family:var(--display);font-weight:400;font-size:1.05rem}.res-feat figure.big figcaption b{font-size:1.6rem}.res-feat figcaption span{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;opacity:.9}.res-feat figcaption em{font-style:normal;font-size:.7rem;color:#E8C77A}@media(max-width:700px){.res-feat{grid-template-columns:1fr 1fr}}.res-cta{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;margin-top:40px;padding:26px;background:var(--band);color:var(--band-fg)}.res-cta p{color:inherit;opacity:.85}
 </style>
 
-<div id="shipmentBanner" style="background:#2d4a1e;color:#e8f5e2;text-align:center;padding:9px 16px;font-size:.88rem;letter-spacing:.01em">🌸 Next shipment: week of <strong>December 11</strong> · Subject to confirmation</div>
+<div id="shipmentBanner" style="background:#2d4a1e;color:#e8f5e2;text-align:center;padding:9px 16px;font-size:.88rem;letter-spacing:.01em">🌸 Next shipment: week of <strong id="bannerDate">…</strong> · Subject to confirmation</div>
 <header class="top">
   <div class="wrap">
     <a class="brand" href="#shop" id="brandLink" aria-label="Nexa Flowers Group"><b>NEXA</b><span>Flowers Group</span></a>
@@ -739,7 +739,7 @@ function renderCheckoutProto(){
       <div class="row"><span>Delivery to Chicago</span><span>${fee===0?"Free":fmt(fee)}</span></div>
       <div class="row big"><span>Total</span><span>${fmt(tot)}</span></div>
     </div>
-    <p class="note" style="margin:0;background:#2d4a1e;color:#e8f5e2;border-radius:6px;padding:10px 14px">🌸 Orders placed now are scheduled for delivery the <strong>week of December 11</strong>, subject to availability confirmation.</p>
+    <p class="note" style="margin:0;background:#2d4a1e;color:#e8f5e2;border-radius:6px;padding:10px 14px">🌸 Orders placed now are scheduled for delivery the <strong>week of ${dayLabel(fromIso(state.delivery))}</strong>, subject to availability confirmation.</p>
     <p class="note" style="margin:0">Quality guarantee: if something arrives damaged, send us 2–3 photos (box label, the flowers, and a close-up) within 24 hours of delivery by WhatsApp or email. We credit it on your next order, or refund it if you prefer.</p>
     <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
       <button class="gold-btn" type="button" id="sim">Place order ↗</button>
@@ -2248,6 +2248,7 @@ async function boot(){
   const hashErr = /error_description=([^&]+)/.exec(location.hash);
   try{
     await loadConfig();
+    { const s=shipments(1)[0]; if(s){ const bd=$("#bannerDate"); if(bd) bd.textContent=dayLabel(s.date); } }
     const {data:{session}} = await sb.auth.getSession();
     if(/access_token=|error_description=|type=magiclink|type=signup/.test(location.hash)) history.replaceState(null,"",location.pathname+location.search+"#shop");
     if(session) await loadUser(session.user); else state.user=null;
